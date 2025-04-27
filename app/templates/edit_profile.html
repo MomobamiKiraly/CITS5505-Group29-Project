@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Edit Profile - F1 Predictor</title>
+</head>
+<body>
+    <h2>Edit Your Profile</h2>
+    <form method="POST" action="/edit-profile">
+        <input type="text" name="username" value="{{ user.username }}" required><br><br>
+        <input type="email" name="email" value="{{ user.email }}" required><br><br>
+        <input type="text" name="favorite_team" value="{{ user.favorite_team }}"><br><br>
+        <input type="text" name="favorite_driver" value="{{ user.favorite_driver }}"><br><br>
+        <button type="submit">Save Changes</button>
+    </form>
+    <p><a href="/profile">Back to Profile</a></p>
+</body>
+</html>
