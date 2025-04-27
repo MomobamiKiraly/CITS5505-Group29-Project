@@ -1,0 +1,46 @@
+<!-- chatbot.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Team Chatbot - F1 Predictor</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <h1>Ask about your team!</h1>
+
+    <div id="chatbox">
+        <div id="messages"></div>
+        <form id="chat-form">
+            <input type="text" id="user-input" placeholder="Ask a question..." required>
+            <button type="submit">Send</button>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('chat-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const userInput = document.getElementById('user-input').value;
+            const messageDiv = document.createElement('div');
+            messageDiv.textContent = "You: " + userInput;
+            document.getElementById('messages').appendChild(messageDiv);
+
+            fetch('/ask', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ message: userInput })
+            })
+            .then(response => response.json())
+            .then(data => {
+                const botReply = document.createElement('div');
+                botReply.textContent = "Bot: " + data.reply;
+                document.getElementById('messages').appendChild(botReply);
+            });
+
+            document.getElementById('user-input').value = '';
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,41 @@
+<!-- profile.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>My Profile - F1 Predictor</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <h1>My Profile</h1>
+    <div>
+        <p><strong>Full Name:</strong> {{ user.full_name }}</p>
+        <p><strong>Username:</strong> {{ user.username }}</p>
+        <p><strong>Email:</strong> {{ user.email }}</p>
+        <p><strong>Favorite Team:</strong> {{ user.favorite_team }}</p>
+        <a href="/edit-profile">Edit Profile</a>
+    </div>
+
+    <h2>My Prediction History</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Race</th>
+                <th>Predicted Winner</th>
+                <th>Actual Winner</th>
+                <th>Points</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for prediction in predictions %}
+            <tr>
+                <td>{{ prediction.race_name }}</td>
+                <td>{{ prediction.predicted_winner }}</td>
+                <td>{{ prediction.actual_winner }}</td>
+                <td>{{ prediction.points }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>
