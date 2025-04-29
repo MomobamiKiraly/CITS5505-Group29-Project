@@ -108,3 +108,12 @@ def ask():
         reply = "I'm still learning! Try asking about drivers, cars, or scores."
 
     return jsonify({'reply': reply})
+
+from flask_login import logout_user
+
+@main.route('/logout')
+def logout():
+    logout_user()  # 调用 Flask-Login 的 logout
+    session.clear()  # 清除 session
+    flash('You have been logged out.', 'info')
+    return redirect(url_for('main.login'))
