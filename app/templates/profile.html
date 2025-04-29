@@ -1,41 +1,34 @@
-<!-- profile.html -->
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>My Profile - F1 Predictor</title>
-    <link rel="stylesheet" href="/static/styles.css">
+    <title>Your Profile</title>
 </head>
 <body>
-    <h1>My Profile</h1>
-    <div>
-        <p><strong>Full Name:</strong> {{ user.full_name }}</p>
-        <p><strong>Username:</strong> {{ user.username }}</p>
-        <p><strong>Email:</strong> {{ user.email }}</p>
-        <p><strong>Favorite Team:</strong> {{ user.favorite_team }}</p>
-        <a href="/edit-profile">Edit Profile</a>
-    </div>
+    <h1>Welcome, {{ user.username }}!</h1>
 
-    <h2>My Prediction History</h2>
-    <table>
-        <thead>
-            <tr>
-                <th>Race</th>
-                <th>Predicted Winner</th>
-                <th>Actual Winner</th>
-                <th>Points</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for prediction in predictions %}
-            <tr>
-                <td>{{ prediction.race_name }}</td>
-                <td>{{ prediction.predicted_winner }}</td>
-                <td>{{ prediction.actual_winner }}</td>
-                <td>{{ prediction.points }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <h2>Personal Information</h2>
+    <ul>
+        <li><strong>Username:</strong> {{ user.username }}</li>
+        <li><strong>Email:</strong> {{ user.email }}</li>
+        <li><strong>Favorite Team:</strong> {{ user.favorite_team or 'Not set' }}</li>
+        <li><strong>Favorite Driver:</strong> {{ user.favorite_driver or 'Not set' }}</li>
+    </ul>
+
+    <h2>Your Predictions</h2>
+    {% if predictions %}
+        <ul>
+        {% for prediction in predictions %}
+            <li>{{ prediction.race_name }} - {{ prediction.prediction_result }}</li>
+        {% endfor %}
+        </ul>
+    {% else %}
+        <p>No predictions yet.</p>
+    {% endif %}
+
+    <br>
+    <a href="{{ url_for('main.edit_profile') }}">Edit Profile</a> |
+    <a href="{{ url_for('main.chatbot') }}">Ask the AI Chatbot</a> |
+    <a href="{{ url_for('main.logout') }}">Logout</a>
 </body>
 </html>
