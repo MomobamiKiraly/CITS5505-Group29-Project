@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Upload Data</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <style>
+        .step {
+            display: none;
+        }
+
+        .step.active {
+            display: block;
+        }
+
+        .team,
+        .driver {
+            border: 2px solid transparent;
+            transition: 0.3s;
+            cursor: pointer;
+        }
+
+        .team.selected,
+        .driver.selected {
+            border-color: #007bff;
+        }
+    </style>
+</head>
+
+<body class="bg-light p-5">
+
+    <div class="container bg-white p-4 shadow rounded">
+        <h2 class="mb-4">Upload Your F1 Prediction</h2>
+
+        <form id="uploadForm" method="POST">
+
+            <!-- Step 1: Personal Info -->
+            <div class="step active" id="step1">
+                <h4>Step 1: Personal Info</h4>
+                <input class="form-control mb-2" type="text" name="full_name" placeholder="Full Name" required>
+                <input class="form-control mb-2" type="number" name="age" placeholder="Age" required>
+                <input class="form-control mb-2" type="text" name="country" placeholder="Country (optional)">
+                <button class="btn btn-primary mt-3" type="button" onclick="nextStep()">Next</button>
+            </div>
+
+            <!-- Step 2: Team & Driver -->
+            <div class="step" id="step2">
+                <h4>Step 2: Choose Team</h4>
+                <div class="row text-center">
+                    {% for team in teams %}
+                    <div class="col-6">
+                        <img src="{{ team.image_url }}" class="team img-fluid p-2" onclick="selectItem(this, 'team')"
+                            data-value="{{ team.name }}">
+                    </div>
+                    {% endfor %}
+                </div>
+                <input type="hidden" name="team" id="teamInput">
+
+                <h4 class="mt-4">Choose Driver</h4>
+                <div class="row text-center">
+                    {% for driver in drivers %}
+                    <div class="col-6">
+                        <img src="{{ driver.image_url }}" class="driver img-fluid p-2"
+                            onclick="selectItem(this, 'driver')" data-value="{{ driver.name }}">
+                    </div>
+                    {% endfor %}
+                </div>
+                <input type="hidden" name="driver" id="driverInput">
+
+                <div class="mt-3">
+                    <button class="btn btn-secondary" type="button" onclick="prevStep()">Back</button>
+                    <button class="btn btn-primary" type="button" onclick="nextStep()">Next</button>
+                </div>
+            </div>
+
+            <!-- Step 3: Predictions -->
+            <div class="step" id="step3">
+                <h4>Step 3: Predictions</h4>
+                <input class="form-control mb-2" type="text" name="race_winner"
+                    placeholder="Who will win the next race?" required>
+                <input class="form-control mb-2" type="text" name="top_3"
+                    placeholder="Top 3 finishers (comma-separated)" required>
+                <input class="form-control mb-2" type="text" name="fastest_lap" placeholder="Fastest lap driver"
+                    required>
+
+                <div class="mt-3">
+                    <button class="btn btn-secondary" type="button" onclick="prevStep()">Back</button>
+                    <button class="btn btn-success" type="submit">Submit</button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        let current = 0;
+        const steps = document.querySelectorAll('.step');
+
+        function nextStep() {
+            if (current < steps.length - 1) {
+                steps[current].classList.remove('active');
+                current++;
+                steps[current].classList.add('active');
+            }
+        }
+        function prevStep() {
+            if (current > 0) {
+                steps[current].classList.remove('active');
+                current--;
+                steps[current].classList.add('active');
+            }
+        }
+        function selectItem(el, type) {
+            document.querySelectorAll('.' + type).forEach(e => e.classList.remove('selected'));
+            el.classList.add('selected');
+            document.getElementById(type + 'Input').value = el.dataset.value;
+        }
+    </script>
+
+</body>
+
+</html>
