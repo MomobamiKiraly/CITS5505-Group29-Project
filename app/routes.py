@@ -1,5 +1,7 @@
-from flask import Blueprint, render_template, request, redirect, url_for, session, flash, jsonify
+from flask import Blueprint, render_template, redirect, url_for, flash, request, session, jsonify
+from app.forms import LoginForm
 from app.models import User, Prediction
+from flask_login import login_user
 from app import db
 
 main = Blueprint('main', __name__)
@@ -10,17 +12,17 @@ def home():
 
 @main.route('/login', methods=['GET', 'POST'])
 def login():
-    if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
-        user = User.query.filter_by(username=username, password=password).first()
-        if user:
+    form = LoginForm()
+    if form.validate_on_submit():
+        user = User.query.filter_by(username=form.username.data).first()
+        if user and user.check_password(form.password.data):
+            login_user(user)
             session['user_id'] = user.id
-            flash('Login successful!')
+            flash('Login successful!', 'success')
             return redirect(url_for('main.profile'))
         else:
-            flash('Invalid username or password.')
-    return render_template('login.html')
+            flash('Invalid username or password', 'danger')
+    return render_template('login.html', form=form)
 
 @main.route('/register', methods=['GET', 'POST'])
 def register():
@@ -31,14 +33,15 @@ def register():
 
         existing_user = User.query.filter((User.username == username) | (User.email == email)).first()
         if existing_user:
-            flash('Username or email already exists.')
+            flash('Username or email already exists.', 'danger')
             return redirect(url_for('main.register'))
 
-        new_user = User(username=username, email=email, password=password)
+        new_user = User(username=username, email=email)
+        new_user.set_password(password)  # 用加密密码存储
         db.session.add(new_user)
         db.session.commit()
 
-        flash('Registration successful. Please log in.')
+        flash('Registration successful. Please log in.', 'success')
         return redirect(url_for('main.login'))
 
     return render_template('register.html')
@@ -49,9 +52,9 @@ def forgot_password():
         email = request.form['email']
         user = User.query.filter_by(email=email).first()
         if user:
-            flash('Password reset link would be sent (simulation).')
+            flash('Password reset link would be sent (simulation).', 'info')
         else:
-            flash('Email not found.')
+            flash('Email not found.', 'danger')
         return redirect(url_for('main.login'))
     return render_template('forgot_password.html')
 
@@ -69,7 +72,7 @@ def edit_profile():
         user.favorite_driver = request.form.get('favorite_driver')
         db.session.commit()
 
-        flash('Profile updated successfully.')
+        flash('Profile updated successfully.', 'success')
         return redirect(url_for('main.profile'))
 
     return render_template('edit_profile.html', user=user)
