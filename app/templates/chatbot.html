@@ -20,12 +20,19 @@
     <script>
         document.getElementById('chat-form').addEventListener('submit', function(e) {
             e.preventDefault();
-            const userInput = document.getElementById('user-input').value;
-            const messageDiv = document.createElement('div');
-            messageDiv.textContent = "You: " + userInput;
-            document.getElementById('messages').appendChild(messageDiv);
 
-            fetch('/chat', {  // ✅ 改为 '/chat'
+            const userInput = document.getElementById('user-input').value.trim();
+            if (!userInput) return;
+
+            const userMessage = document.createElement('div');
+            userMessage.textContent = "You: " + userInput;
+            document.getElementById('messages').appendChild(userMessage);
+
+            const botReply = document.createElement('div');
+            botReply.textContent = "Bot: (thinking...)";
+            document.getElementById('messages').appendChild(botReply);
+
+            fetch('/chat', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -34,9 +41,17 @@
             })
             .then(response => response.json())
             .then(data => {
-                const botReply = document.createElement('div');
-                botReply.textContent = "Bot: " + data.reply;
-                document.getElementById('messages').appendChild(botReply);
+                if (data.reply) {
+                    botReply.textContent = "Bot: " + data.reply;
+                } else if (data.error) {
+                    botReply.textContent = "Bot error: " + data.error;
+                } else {
+                    botReply.textContent = "Bot: Unexpected response.";
+                }
+            })
+            .catch(error => {
+                botReply.textContent = "Bot: Failed to connect to server.";
+                console.error(error);
             });
 
             document.getElementById('user-input').value = '';

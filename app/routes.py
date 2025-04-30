@@ -197,8 +197,12 @@ def chat():
         print("OpenAI reply:", reply)
         return jsonify({"reply": reply})
     except Exception as e:
-        print("OpenAI Error:", e)  # ✅ 加这一行！
+        print("OpenAI Error:", e)  
         return jsonify({"error": str(e)}), 500
+
+
+
+
 
 
 
