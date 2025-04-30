@@ -31,14 +31,15 @@
     <div class="container bg-white p-4 shadow rounded">
         <h2>Upload Your F1 Prediction</h2>
         <form method="POST">
+            <!-- Step 1: Personal Info -->
             <div class="step active" id="step1">
                 <h4>Step 1: Personal Info</h4>
                 <input class="form-control mb-2" type="text" name="full_name" placeholder="Full Name" required>
                 <input class="form-control mb-2" type="number" name="age" placeholder="Age" required>
-                <input class="form-control mb-2" type="text" name="country" placeholder="Country">
                 <button class="btn btn-primary mt-2" type="button" onclick="nextStep()">Next</button>
             </div>
 
+            <!-- Step 2: Team & Driver -->
             <div class="step" id="step2">
                 <h4>Step 2: Choose Team</h4>
                 <div class="row text-center">
@@ -50,23 +51,57 @@
                     {% endfor %}
                 </div>
                 <input type="hidden" name="team" id="teamInput">
-                <h4 class="mt-4">Choose Driver</h4>
-                <div class="row text-center" id="driverContainer"></div>
-                <input type="hidden" name="driver" id="driverInput">
-                <button class="btn btn-secondary mt-2" type="button" onclick="prevStep()">Back</button>
-                <button class="btn btn-primary mt-2" type="button" onclick="nextStep()">Next</button>
+
+                <div id="driverSection" style="display: none;">
+                    <h4 class="mt-4">Choose Driver</h4>
+                    <div class="row text-center" id="driverContainer"></div>
+                    <input type="hidden" name="driver" id="driverInput">
+                </div>
+
+                <button class="btn btn-secondary mt-3" type="button" onclick="prevStep()">Back</button>
+                <button class="btn btn-primary mt-3" type="button" onclick="nextStep()">Next</button>
             </div>
 
+            <!-- Step 3: Predictions -->
             <div class="step" id="step3">
                 <h4>Step 3: Predictions</h4>
-                <input class="form-control mb-2" type="text" name="race_winner" placeholder="Race winner" required>
-                <input class="form-control mb-2" type="text" name="top_3" placeholder="Top 3 (comma-separated)"
-                    required>
-                <input class="form-control mb-2" type="text" name="fastest_lap" placeholder="Fastest lap driver"
-                    required>
+
+                <label for="race_winner" class="form-label">Who will win the next race?</label>
+                <select class="form-select mb-3" name="race_winner" id="race_winner" required>
+                    <option value="">-- None --</option>
+                    {% for team in teams %}
+                    <option value="{{ team.name }}">{{ team.name }}</option>
+                    {% endfor %}
+                </select>
+
+                <label class="form-label">Who will be the top 3 finishers?</label>
+                <div class="mb-3">
+                    <select class="form-select" id="top_3_select">
+                        <option value="">-- None --</option>
+                        {% for team, drivers in drivers_by_team.items() %}
+                        {% for driver in drivers %}
+                        <option value="{{ driver.name }} ({{ team }})">{{ driver.name }} ({{ team }})</option>
+                        {% endfor %}
+                        {% endfor %}
+                    </select>
+                    <div id="top_3_tags" class="mt-2"></div>
+                    <input type="hidden" name="top_3" id="top_3_input">
+                </div>
+
+                <label for="fastest_lap" class="form-label">Who will be the fastest lap driver?</label>
+                <select class="form-select mb-3" name="fastest_lap" id="fastest_lap" required>
+                    <option value="">-- None --</option>
+                    {% for team, drivers in drivers_by_team.items() %}
+                    {% for driver in drivers %}
+                    <option value="{{ driver.name }} ({{ team }})">{{ driver.name }} ({{ team }})</option>
+                    {% endfor %}
+                    {% endfor %}
+                </select>
+
                 <button class="btn btn-secondary" type="button" onclick="prevStep()">Back</button>
                 <button class="btn btn-success" type="submit">Submit</button>
             </div>
+
         </form>
     </div>
 
@@ -82,6 +117,7 @@
                 steps[current].classList.add('active');
             }
         }
+
         function prevStep() {
             if (current > 0) {
                 steps[current].classList.remove('active');
@@ -89,20 +125,29 @@
                 steps[current].classList.add('active');
             }
         }
+
         function selectTeam(el) {
             document.querySelectorAll('.team').forEach(e => e.classList.remove('selected'));
             el.classList.add('selected');
             document.getElementById('teamInput').value = el.dataset.value;
+
+            // Show driver section and update drivers
+            document.getElementById('driverSection').style.display = 'block';
             updateDrivers(el.dataset.value);
         }
 
         function updateDrivers(teamName) {
             const driverContainer = document.getElementById('driverContainer');
             driverContainer.innerHTML = '';
+
             if (driversByTeam[teamName]) {
                 driversByTeam[teamName].forEach(driver => {
                     const col = document.createElement('div');
-                    col.className = 'col-6 mb-2';
+                    col.className = 'col-6 mb-3';
+
+                    const name = document.createElement('p');
+                    name.innerText = driver.name;
+                    name.className = 'fw-bold';
 
                     const img = document.createElement('img');
                     img.src = driver.image_url;
@@ -115,17 +160,46 @@
                         document.getElementById('driverInput').value = driver.name;
                     };
 
+                    col.appendChild(name);
                     col.appendChild(img);
                     driverContainer.appendChild(col);
                 });
             }
-        function selectItem(el, type) {
-            document.querySelectorAll('.' + type).forEach(e => e.classList.remove('selected'));
-            el.classList.add('selected');
-            document.getElementById(type + 'Input').value = el.dataset.value;
         }
-    }
     </script>
+    <script>
+        // Top 3 tag logic
+        const top3Select = document.getElementById('top_3_select');
+        const top3TagsContainer = document.getElementById('top_3_tags');
+        const top3Input = document.getElementById('top_3_input');
+        let top3Selections = [];
+
+        top3Select.addEventListener('change', function () {
+            const selected = this.value;
+            if (selected && !top3Selections.includes(selected) && top3Selections.length < 3) {
+                top3Selections.push(selected);
+                updateTop3Tags();
+                top3Select.value = '';
+            }
+        });
+
+        function updateTop3Tags() {
+            top3TagsContainer.innerHTML = '';
+            top3Selections.forEach((item, index) => {
+                const tag = document.createElement('span');
+                tag.className = 'badge bg-primary me-1';
+                tag.innerHTML = `${item} <span class="ms-1" style="cursor:pointer;" onclick="removeTop3(${index})">&times;</span>`;
+                top3TagsContainer.appendChild(tag);
+            });
+            top3Input.value = top3Selections.join(';');
+        }
+
+        function removeTop3(index) {
+            top3Selections.splice(index, 1);
+            updateTop3Tags();
+        }
+    </script>
+
 </body>
 
 </html>
