@@ -1,8 +1,11 @@
+import openai
+import os
 from flask import Blueprint, render_template, redirect, url_for, flash, request, session, jsonify
 from app.forms import LoginForm
 from app.models import User, Prediction
 from flask_login import login_user
 from app import db
+
 
 main = Blueprint('main', __name__)
 
@@ -169,4 +172,53 @@ def upload():
         return redirect(url_for('main.upload'))
 
     return render_template('upload.html', teams=teams, drivers_by_team=drivers_by_team)
+
+import requests
+from flask import request, jsonify
+
+@main.route("/chat", methods=["POST"])
+def chat():
+    data = request.get_json()
+    user_message = data.get("message", "")
+
+    if not user_message:
+        return jsonify({"error": "No message provided"}), 400
+
+    try:
+        # DeepSeek API endpoint
+        response = requests.post(
+            "https://api.deepseek.com/v1/chat/completions",
+            headers={
+                "Authorization": "Bearer sk-840cc1a0773847b58044106e33e2119d",  # ✅ 你的 DeepSeek key
+                "Content-Type": "application/json"
+            },
+            json={
+                "model": "deepseek-chat",  # 官方默认模型名称
+                "messages": [
+                    {"role": "user", "content": user_message}
+                ]
+            },
+            timeout=30
+        )
+
+        output = response.json()
+        print("🧠 DeepSeek response:", output)
+
+        if "choices" in output and output["choices"]:
+            reply = output["choices"][0]["message"]["content"]
+        else:
+            reply = "Sorry, DeepSeek did not return a valid response."
+
+        return jsonify({"reply": reply})
+
+    except Exception as e:
+        print("❌ DeepSeek API error:", str(e))
+        return jsonify({"error": f"DeepSeek API error: {str(e)}"}), 500
+
+
+
+
+
+
+
 
