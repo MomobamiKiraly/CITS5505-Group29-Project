@@ -25,7 +25,7 @@
             messageDiv.textContent = "You: " + userInput;
             document.getElementById('messages').appendChild(messageDiv);
 
-            fetch('/ask', {
+            fetch('/chat', {  // ✅ 改为 '/chat'
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'

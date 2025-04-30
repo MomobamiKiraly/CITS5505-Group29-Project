@@ -1,8 +1,11 @@
+import openai
+import os
 from flask import Blueprint, render_template, redirect, url_for, flash, request, session, jsonify
 from app.forms import LoginForm
 from app.models import User, Prediction
 from flask_login import login_user
 from app import db
+
 
 main = Blueprint('main', __name__)
 
@@ -169,4 +172,33 @@ def upload():
         return redirect(url_for('main.upload'))
 
     return render_template('upload.html', teams=teams, drivers_by_team=drivers_by_team)
+
+from flask import request, jsonify
+import openai
+import os
+
+openai.api_key = os.environ.get("OPENAI_API_KEY")
+
+@main.route("/chat", methods=["POST"])
+def chat():
+    data = request.get_json()
+    user_message = data.get("message", "")
+    print("Received message:", user_message)
+
+    if not user_message:
+        return jsonify({"error": "No message provided"}), 400
+
+    try:
+        response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=[{"role": "user", "content": user_message}]
+        )
+        reply = response.choices[0].message["content"]
+        print("OpenAI reply:", reply)
+        return jsonify({"reply": reply})
+    except Exception as e:
+        print("OpenAI Error:", e)  # ✅ 加这一行！
+        return jsonify({"error": str(e)}), 500
+
+
 
