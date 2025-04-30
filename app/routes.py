@@ -173,32 +173,48 @@ def upload():
 
     return render_template('upload.html', teams=teams, drivers_by_team=drivers_by_team)
 
+import requests
 from flask import request, jsonify
-import openai
-import os
-
-openai.api_key = os.environ.get("OPENAI_API_KEY")
 
 @main.route("/chat", methods=["POST"])
 def chat():
     data = request.get_json()
     user_message = data.get("message", "")
-    print("Received message:", user_message)
 
     if not user_message:
         return jsonify({"error": "No message provided"}), 400
 
     try:
-        response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
-            messages=[{"role": "user", "content": user_message}]
+        # DeepSeek API endpoint
+        response = requests.post(
+            "https://api.deepseek.com/v1/chat/completions",
+            headers={
+                "Authorization": "Bearer sk-840cc1a0773847b58044106e33e2119d",  # ✅ 你的 DeepSeek key
+                "Content-Type": "application/json"
+            },
+            json={
+                "model": "deepseek-chat",  # 官方默认模型名称
+                "messages": [
+                    {"role": "user", "content": user_message}
+                ]
+            },
+            timeout=30
         )
-        reply = response.choices[0].message["content"]
-        print("OpenAI reply:", reply)
+
+        output = response.json()
+        print("🧠 DeepSeek response:", output)
+
+        if "choices" in output and output["choices"]:
+            reply = output["choices"][0]["message"]["content"]
+        else:
+            reply = "Sorry, DeepSeek did not return a valid response."
+
         return jsonify({"reply": reply})
+
     except Exception as e:
-        print("OpenAI Error:", e)  
-        return jsonify({"error": str(e)}), 500
+        print("❌ DeepSeek API error:", str(e))
+        return jsonify({"error": f"DeepSeek API error: {str(e)}"}), 500
+
 
 
 
