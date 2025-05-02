@@ -7,11 +7,10 @@
 <body>
     <h1>Welcome, {{ user.username }}!</h1>
 
-    {% if user.profile_pic %}
-        <img src="{{ user.profile_pic }}" alt="Profile Picture" width="150">
-    {% else %}
-        <p><em>No profile picture uploaded.</em></p>
-    {% endif %}
+   
+    <img src="{{ url_for('static', filename='profile_pics/' ~ (user.profile_pic if user.profile_pic else 'default.jpg')) }}"
+         alt="Profile Picture"
+         width="150">
 
     <h2>Personal Information</h2>
     <ul>
