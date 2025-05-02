@@ -42,7 +42,7 @@ def register():
 
         new_user= User(username=username, email=email)
         new_user.set_password(password)
-        new_user.profile_pic = url_for('static', filename='profile_pics/default.jpg')
+        new_user.profile_pic = 'default.jpg'
         db.session.add(new_user)
         db.session.commit()
 

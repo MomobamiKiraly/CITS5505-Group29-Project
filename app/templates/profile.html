@@ -7,8 +7,8 @@
 <body>
     <h1>Welcome, {{ user.username }}!</h1>
 
-   
-    <img src="{{ url_for('static', filename='profile_pics/' ~ (user.profile_pic if user.profile_pic else 'default.jpg')) }}"
+    
+    <img src="{{ url_for('static', filename='profile_pics/' + (user.profile_pic if user.profile_pic else 'default.jpg')) }}"
          alt="Profile Picture"
          width="150">
 
