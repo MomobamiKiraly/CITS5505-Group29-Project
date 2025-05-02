@@ -1,18 +1,39 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>Edit Profile - F1 Predictor</title>
+    <title>Edit Profile</title>
 </head>
 <body>
     <h2>Edit Your Profile</h2>
-    <form method="POST" action="/edit-profile">
-        <input type="text" name="username" value="{{ user.username }}" required><br><br>
-        <input type="email" name="email" value="{{ user.email }}" required><br><br>
-        <input type="text" name="favorite_team" value="{{ user.favorite_team }}"><br><br>
-        <input type="text" name="favorite_driver" value="{{ user.favorite_driver }}"><br><br>
-        <button type="submit">Save Changes</button>
+
+    <form method="POST" enctype="multipart/form-data">
+        <label>Username:</label><br>
+        <input type="text" name="username" value="{{ user.username }}"><br>
+
+        <label>Email:</label><br>
+        <input type="email" name="email" value="{{ user.email }}"><br>
+
+        <label>Favorite Team:</label><br>
+        <input type="text" name="favorite_team" value="{{ user.favorite_team }}"><br>
+
+        <label>Favorite Driver:</label><br>
+        <input type="text" name="favorite_driver" value="{{ user.favorite_driver }}"><br>
+
+        <label>Bio:</label><br>
+        <textarea name="bio">{{ user.bio }}</textarea><br>
+
+        <label>Profile Picture:</label><br>
+        {% if user.profile_pic %}
+            <img src="{{ user.profile_pic }}" alt="Current Picture" width="120"><br>
+        {% else %}
+            <p><em>No profile picture uploaded.</em></p>
+        {% endif %}
+        <input type="file" name="profile_pic"><br><br>
+
+        <button type="submit">Save</button>
     </form>
-    <p><a href="/profile">Back to Profile</a></p>
+
+    <br>
+    <a href="{{ url_for('main.profile') }}">Back to profile</a>
 </body>
 </html>
