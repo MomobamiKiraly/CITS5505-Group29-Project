@@ -2,6 +2,7 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 
+
 db = SQLAlchemy()
 login_manager = LoginManager()
 
@@ -21,6 +22,9 @@ def create_app():
 
     # Move this import **inside** create_app
     from app.models import User
+    
+    app.config['UPLOAD_FOLDER'] = 'app/static/profile_pics'
+    app.config['MAX_CONTENT_LENGTH'] = 2 * 1024 * 1024  # Max 2MB file
 
     @login_manager.user_loader
     def load_user(user_id):

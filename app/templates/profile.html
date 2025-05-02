@@ -7,19 +7,26 @@
 <body>
     <h1>Welcome, {{ user.username }}!</h1>
 
+    {% if user.profile_pic %}
+        <img src="{{ user.profile_pic }}" alt="Profile Picture" width="150">
+    {% else %}
+        <p><em>No profile picture uploaded.</em></p>
+    {% endif %}
+
     <h2>Personal Information</h2>
     <ul>
         <li><strong>Username:</strong> {{ user.username }}</li>
         <li><strong>Email:</strong> {{ user.email }}</li>
         <li><strong>Favorite Team:</strong> {{ user.favorite_team or 'Not set' }}</li>
         <li><strong>Favorite Driver:</strong> {{ user.favorite_driver or 'Not set' }}</li>
+        <li><strong>Bio:</strong> {{ user.bio or 'No bio provided.' }}</li>
     </ul>
 
     <h2>Your Predictions</h2>
     {% if predictions %}
         <ul>
         {% for prediction in predictions %}
-            <li>{{ prediction.race_name }} - {{ prediction.prediction_result }}</li>
+            <li>{{ prediction.race_name }} - {{ prediction.prediction_result or 'No result' }}</li>
         {% endfor %}
         </ul>
     {% else %}
