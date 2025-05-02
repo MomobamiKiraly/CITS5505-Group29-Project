@@ -1,13 +1,18 @@
+import os
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
-
 
 db = SQLAlchemy()
 login_manager = LoginManager()
 
 def create_app():
-    app = Flask(__name__)
+    # Create and configure the Flask application
+    app = Flask(
+        __name__,
+        static_folder=os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'static'))
+    )
+
     app.config['SECRET_KEY'] = 'your-secret-key'
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///your-database.db'
 
@@ -20,9 +25,9 @@ def create_app():
     from app.routes import main
     app.register_blueprint(main)
 
-    # Move this import **inside** create_app
     from app.models import User
-    
+
+    # Set up the upload folder for profile pictures
     app.config['UPLOAD_FOLDER'] = 'app/static/profile_pics'
     app.config['MAX_CONTENT_LENGTH'] = 2 * 1024 * 1024  # Max 2MB file
 
