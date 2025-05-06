@@ -14,14 +14,19 @@ main = Blueprint('main', __name__)
 def home():
     return redirect(url_for('main.login'))
 
+from flask_login import login_user, current_user
+
 @main.route('/login', methods=['GET', 'POST'])
 def login():
+    if current_user.is_authenticated:
+        return redirect(url_for('main.profile'))  # Redirect if already logged in
+
     form = LoginForm()
     if form.validate_on_submit():
         user = User.query.filter_by(username=form.username.data).first()
         if user and user.check_password(form.password.data):
             login_user(user)
-            session['user_id'] = user.id
+            session['user_id'] = user.id  # Store user ID in session
             flash('Login successful!', 'success')
             return redirect(url_for('main.profile'))
         else:

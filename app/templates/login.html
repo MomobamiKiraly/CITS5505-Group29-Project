@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -7,6 +7,17 @@
 </head>
 <body>
     <div class="login-container">
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="alert alert-{{ category }}">
+                {{ message }}
+              </div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
         <form method="POST">
             {{ form.hidden_tag() }}
             <h2>F1 Login</h2>
@@ -20,6 +31,12 @@
             </div>
             <button type="submit" class="btn">Login</button>
         </form>
+
+        <p class="register-link">
+            Don't have an account?
+            <a href="{{ url_for('main.register') }}">Register here</a>.
+        </p>
+
     </div>
     <script src="{{ url_for('static', filename='js/login.js') }}"></script>
 </body>
