@@ -1,4 +1,4 @@
-body {
+body { 
     margin: 0;
     padding: 0;
     font-family: 'Arial', sans-serif;
@@ -49,4 +49,43 @@ h2 {
 
 .btn:hover {
     background-color: darkred;
+}
+
+
+.alert {
+    padding: 10px;
+    margin-bottom: 15px;
+    border-radius: 5px;
+    text-align: center;
+    font-weight: bold;
+    color: white;
+}
+
+.alert-success {
+    background-color: rgba(40, 167, 69, 0.85); /* green */
+}
+
+.alert-danger {
+    background-color: rgba(220, 53, 69, 0.85); /* red */
+}
+
+.alert-info {
+    background-color: rgba(23, 162, 184, 0.85); /* blue */
+}
+
+
+.register-link {
+    text-align: center;
+    margin-top: 15px;
+    font-size: 14px;
+    color: white;
+}
+
+.register-link a {
+    color: #ff6666;
+    text-decoration: none;
+}
+
+.register-link a:hover {
+    text-decoration: underline;
 }
