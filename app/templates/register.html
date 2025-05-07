@@ -1,47 +1,195 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <title>Register - F1 Predictor</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
+  <meta charset="UTF-8">
+  <title>Register - F1 Predictor</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
+  <style>
+    .step {
+      display: none;
+    }
+
+    .step.active {
+      display: block;
+    }
+
+    .team,
+    .driver {
+      cursor: pointer;
+      padding: 10px;
+      border-radius: 10px;
+      border: 2px solid transparent;
+      transition: 0.3s;
+    }
+
+    .team:hover,
+    .driver:hover {
+      border-color: #e10600;
+    }
+
+    .selected {
+      border-color: #e10600 !important;
+    }
+
+    .team-grid,
+    .driver-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 15px;
+      margin-top: 10px;
+      justify-items: center;
+    }
+
+    .team,
+    .driver img {
+      width: 100px;
+      height: auto;
+      object-fit: contain;
+      transition: 0.3s;
+    }
+
+    .driver {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+
+
+    }
+
+    .team {
+      background-color: #f0f0f0;
+      /* light grey background */
+    }
+
+    .driver.selected {
+      border: 2px solid #e10600;
+      border-radius: 10px;
+    }
+  </style>
 </head>
+
 <body>
-    <div class="login-container">
+  <div class="login-container">
 
-        
-        {% with messages = get_flashed_messages(with_categories=true) %}
-          {% if messages %}
-            {% for category, message in messages %}
-              <div class="alert alert-{{ category }}">
-                {{ message }}
-              </div>
-            {% endfor %}
-          {% endif %}
-        {% endwith %}
-
-        <form method="POST">
-            <h2>Register</h2>
-            <div class="form-group">
-                <label class="label" for="username">Username</label>
-                <input class="input" type="text" name="username" required>
-            </div>
-            <div class="form-group">
-                <label class="label" for="email">Email</label>
-                <input class="input" type="email" name="email" required>
-            </div>
-            <div class="form-group">
-                <label class="label" for="password">Password</label>
-                <input class="input" type="password" name="password" required>
-            </div>
-            <button type="submit" class="btn">Register</button>
-        </form>
-
-        
-        <p class="register-link">
-            Already have an account?
-            <a href="{{ url_for('main.login') }}">Login here</a>.
-        </p>
-
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    {% for category, message in messages %}
+    <div class="alert alert-{{ category }}">
+      {{ message }}
     </div>
+    {% endfor %}
+    {% endif %}
+    {% endwith %}
+
+    <form method="POST">
+      <h2>Register</h2>
+
+      <!-- Step 1: Basic Info -->
+      <div class="step active" id="step1">
+        <div class="form-group">
+          <label class="label" for="username">Username</label>
+          <input class="input" type="text" name="username" required>
+        </div>
+        <div class="form-group">
+          <label class="label" for="email">Email</label>
+          <input class="input" type="email" name="email" required>
+        </div>
+        <div class="form-group">
+          <label class="label" for="password">Password</label>
+          <input class="input" type="password" name="password" required>
+        </div>
+        <button type="button" class="btn" onclick="nextStep()">Next</button>
+      </div>
+
+      <!-- Step 2: Choose Team & Driver -->
+      <div class="step" id="step2">
+        <h3>Choose Your Favorite Team</h3>
+        <div class="team-grid">
+          {% for team in teams %}
+          <img src="{{ team.image_url }}" class="team" data-value="{{ team.name }}" onclick="selectTeam(this)">
+          {% endfor %}
+        </div>
+        <input type="hidden" name="favorite_team" id="teamInput">
+
+        <div id="driverSection" style="display: none;">
+          <h3>Choose Your Favorite Driver</h3>
+          <div class="driver-grid" id="driverContainer"></div>
+          <input type="hidden" name="favorite_driver" id="driverInput">
+        </div>
+
+        <button type="button" class="btn" onclick="prevStep()">Back</button>
+        <button type="submit" class="btn">Register</button>
+      </div>
+    </form>
+
+    <p class="register-link">
+      Already have an account?
+      <a href="{{ url_for('main.login') }}">Login here</a>.
+    </p>
+  </div>
+
+  <script>
+    let current = 0;
+    const steps = document.querySelectorAll('.step');
+    const driversByTeam = {{ drivers_by_team | tojson }};
+
+    function nextStep() {
+      if (current < steps.length - 1) {
+        steps[current].classList.remove('active');
+        current++;
+        steps[current].classList.add('active');
+      }
+    }
+
+    function prevStep() {
+      if (current > 0) {
+        steps[current].classList.remove('active');
+        current--;
+        steps[current].classList.add('active');
+      }
+    }
+
+    function selectTeam(el) {
+      document.querySelectorAll('.team').forEach(e => e.classList.remove('selected'));
+      el.classList.add('selected');
+      const teamName = el.dataset.value;
+      document.getElementById('teamInput').value = teamName;
+
+      // Show driver section
+      document.getElementById('driverSection').style.display = 'block';
+      const driverContainer = document.getElementById('driverContainer');
+      driverContainer.innerHTML = '';
+
+      if (driversByTeam[teamName]) {
+        driversByTeam[teamName].forEach(driver => {
+          const div = document.createElement('div');
+          div.className = 'driver';
+
+          const img = document.createElement('img');
+          img.src = driver.image_url;
+          img.alt = driver.name;
+          img.style.width = '100px';
+          img.style.margin = '5px';
+          img.setAttribute('data-value', driver.name);
+          img.onclick = function () {
+            document.querySelectorAll('.driver').forEach(d => d.classList.remove('selected'));
+            div.classList.add('selected');
+            document.getElementById('driverInput').value = driver.name;
+          };
+
+          const label = document.createElement('p');
+          label.innerText = driver.name;
+          label.style.color = 'white';
+          label.style.fontSize = '0.9rem';
+
+          div.appendChild(img);
+          div.appendChild(label);
+          driverContainer.appendChild(div);
+        });
+      }
+    }
+  </script>
 </body>
+
 </html>
