@@ -1,17 +1,22 @@
-<!-- chatbot.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <style>
+        body { background-color: pink; }
+    </style>      
     <meta charset="UTF-8">
     <title>Team Chatbot - F1 Predictor</title>
-    <!-- <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}"> -->
+    <link rel="stylesheet" href="/static/css/chatbot.css">
+</head>
+
 </head>
 <body>
-    <h1>Ask about your team!</h1>
+    <div class="chatbot-container">
+        <div class="chatbot-header">Ask about your team!</div>
 
-    <div id="chatbox">
-        <div id="messages"></div>
-        <form id="chat-form">
+        <div class="chatbot-messages" id="messages"></div>
+
+        <form id="chat-form" class="chatbot-input">
             <input type="text" id="user-input" placeholder="Ask a question..." required>
             <button type="submit">Send</button>
         </form>
@@ -25,10 +30,12 @@
             if (!userInput) return;
 
             const userMessage = document.createElement('div');
+            userMessage.className = 'chatbot-message user';
             userMessage.textContent = "You: " + userInput;
             document.getElementById('messages').appendChild(userMessage);
 
             const botReply = document.createElement('div');
+            botReply.className = 'chatbot-message bot';
             botReply.textContent = "Bot: (thinking...)";
             document.getElementById('messages').appendChild(botReply);
 
@@ -55,7 +62,9 @@
             });
 
             document.getElementById('user-input').value = '';
+            document.getElementById('messages').scrollTop = document.getElementById('messages').scrollHeight;
         });
     </script>
 </body>
 </html>
+
