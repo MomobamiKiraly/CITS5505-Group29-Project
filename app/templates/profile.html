@@ -1,17 +1,30 @@
-<!doctype html>
+<!doctype html> 
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Your Profile</title>
+    <title>{{ user.username }}'s Profile</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}">
+    <script src="{{ url_for('static', filename='js/profile.js') }}"></script>
 </head>
 <body>
     <h1>Welcome, {{ user.username }}!</h1>
 
-    
+    <!-- Profile Picture -->
     <img src="{{ url_for('static', filename='profile_pics/' + (user.profile_pic if user.profile_pic else 'default.jpg')) }}"
-         alt="Profile Picture"
-         width="150">
+         alt="Profile Picture" width="150">
 
+    <!-- Follow/Unfollow button -->
+    {% if user.id != current_user.id %}
+        <div class="follow-btn">
+            {% if is_following %}
+                <a href="{{ url_for('main.unfollow', user_id=user.id) }}">Unfollow</a>
+            {% else %}
+                <a href="{{ url_for('main.follow', user_id=user.id) }}">Follow</a>
+            {% endif %}
+        </div>
+    {% endif %}
+
+    <!-- Personal Info -->
     <h2>Personal Information</h2>
     <ul>
         <li><strong>Username:</strong> {{ user.username }}</li>
@@ -21,8 +34,40 @@
         <li><strong>Bio:</strong> {{ user.bio or 'No bio provided.' }}</li>
     </ul>
 
-    <h2>Your Predictions</h2>
+    <!-- Blog Post Form (only for self) -->
+    {% if user.id == current_user.id %}
+    <h2>Create a Blog Post</h2>
+    <form method="POST" class="blog-form">
+        <p><input type="text" name="title" placeholder="Post title" required></p>
+        <p><textarea name="content" placeholder="Write your thoughts..." required></textarea></p>
+        <p>
+            <input type="checkbox" name="is_public" id="is_public" checked>
+            <label for="is_public">Make public</label>
+        </p>
+        <p><button type="submit">Publish</button></p>
+    </form>
+    {% endif %}
+
+    <!-- Blog Post List -->
+    <h2>Blog Posts</h2>
+    {% if posts %}
+        {% for post in posts %}
+            <div class="blog-post">
+                <h3>{{ post.title }}</h3>
+                <small>{{ post.timestamp.strftime('%Y-%m-%d %H:%M') }}</small>
+                <p>{{ post.content }}</p>
+                {% if not post.is_public %}
+                    <p><em><small>Visible to followers only</small></em></p>
+                {% endif %}
+            </div>
+        {% endfor %}
+    {% else %}
+        <p>No blog posts yet.</p>
+    {% endif %}
+
+    <!-- Predictions Section -->
     {% if predictions %}
+        <h2>Your Predictions</h2>
         <ul>
         {% for prediction in predictions %}
             <li>{{ prediction.race_name }} - {{ prediction.prediction_result or 'No result' }}</li>
@@ -33,8 +78,10 @@
     {% endif %}
 
     <br>
-    <a href="{{ url_for('main.edit_profile') }}">Edit Profile</a> |
-    <a href="{{ url_for('main.chatbot') }}">Ask the AI Chatbot</a> |
-    <a href="{{ url_for('main.logout') }}">Logout</a>
+    {% if user.id == current_user.id %}
+        <a href="{{ url_for('main.edit_profile') }}">Edit Profile</a> |
+        <a href="{{ url_for('main.chatbot') }}">Ask the AI Chatbot</a> |
+        <a href="{{ url_for('main.logout') }}">Logout</a>
+    {% endif %}
 </body>
 </html>
