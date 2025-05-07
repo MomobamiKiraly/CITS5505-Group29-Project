@@ -45,10 +45,8 @@ class User(db.Model, UserMixin):
 class Prediction(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    race_name = db.Column(db.String(120))
     predicted_winner = db.Column(db.String(80))
-    actual_winner = db.Column(db.String(80))
-    points = db.Column(db.Integer)
+    fastest_lap = db.Column(db.String(80))
 
 
 # ---------- BlogPost Model ----------
