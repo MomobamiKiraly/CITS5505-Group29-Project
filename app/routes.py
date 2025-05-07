@@ -1,20 +1,28 @@
 import openai
 import os
-from flask import Blueprint, render_template, redirect, url_for, flash, request, session, jsonify
+import requests
+from datetime import datetime
+from flask import Blueprint, render_template, redirect, url_for, flash, request, session, jsonify, current_app
+from flask_login import login_user, logout_user, login_required, current_user
+from werkzeug.utils import secure_filename
+from sqlalchemy import or_
 from app.forms import LoginForm
-from app.models import User, Prediction
-from flask_login import login_user
+from app.models import User, Prediction, BlogPost, Friendship
 from app import db
-
 
 main = Blueprint('main', __name__)
 
+# ---------- Home ----------
 @main.route('/')
 def home():
     return redirect(url_for('main.login'))
 
+# ---------- Login ----------
 @main.route('/login', methods=['GET', 'POST'])
 def login():
+    if current_user.is_authenticated:
+        return redirect(url_for('main.profile'))
+
     form = LoginForm()
     if form.validate_on_submit():
         user = User.query.filter_by(username=form.username.data).first()
@@ -27,6 +35,7 @@ def login():
             flash('Invalid username or password', 'danger')
     return render_template('login.html', form=form)
 
+# ---------- Register ----------
 @main.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
@@ -40,7 +49,8 @@ def register():
             return redirect(url_for('main.register'))
 
         new_user = User(username=username, email=email)
-        new_user.set_password(password)  # 用加密密码存储
+        new_user.set_password(password)
+        new_user.profile_pic = 'default.jpg'
         db.session.add(new_user)
         db.session.commit()
 
@@ -49,6 +59,7 @@ def register():
 
     return render_template('register.html')
 
+# ---------- Forgot Password ----------
 @main.route('/forgot-password', methods=['GET', 'POST'])
 def forgot_password():
     if request.method == 'POST':
@@ -61,6 +72,7 @@ def forgot_password():
         return redirect(url_for('main.login'))
     return render_template('forgot_password.html')
 
+# ---------- Edit Profile ----------
 @main.route('/edit-profile', methods=['GET', 'POST'])
 def edit_profile():
     if 'user_id' not in session:
@@ -69,17 +81,29 @@ def edit_profile():
     user = User.query.get(session['user_id'])
 
     if request.method == 'POST':
-        user.username = request.form['username']
-        user.email = request.form['email']
+        user.username = request.form.get('username', user.username)
+        user.email = request.form.get('email', user.email)
         user.favorite_team = request.form.get('favorite_team')
         user.favorite_driver = request.form.get('favorite_driver')
-        db.session.commit()
+        user.bio = request.form.get('bio')
 
+        if 'profile_pic' in request.files:
+            file = request.files['profile_pic']
+            if file and file.filename:
+                filename = secure_filename(file.filename)
+                upload_folder = os.path.join(current_app.root_path, 'static', 'profile_pics')
+                os.makedirs(upload_folder, exist_ok=True)
+                filepath = os.path.join(upload_folder, filename)
+                file.save(filepath)
+                user.profile_pic = f'/static/profile_pics/{filename}'
+
+        db.session.commit()
         flash('Profile updated successfully.', 'success')
         return redirect(url_for('main.profile'))
 
     return render_template('edit_profile.html', user=user)
 
+# ---------- Current User Profile ----------
 @main.route('/profile')
 def profile():
     if 'user_id' not in session:
@@ -89,6 +113,97 @@ def profile():
     predictions = Prediction.query.filter_by(user_id=user.id).all()
     return render_template('profile.html', user=user, predictions=predictions)
 
+# ---------- Any User Profile + Blog ----------
+@main.route('/profile/<int:user_id>', methods=['GET', 'POST'])
+@login_required
+def view_profile(user_id):
+    target_user = User.query.get_or_404(user_id)
+
+    if request.method == 'POST' and current_user.id == target_user.id:
+        title = request.form['title']
+        content = request.form['content']
+        is_public = request.form.get('is_public') == 'on'
+
+        new_post = BlogPost(
+            author=current_user,
+            title=title,
+            content=content,
+            is_public=is_public,
+            timestamp=datetime.utcnow()
+        )
+        db.session.add(new_post)
+        db.session.commit()
+        flash("Blog post published!", "success")
+        return redirect(url_for('main.view_profile', user_id=user_id))
+
+    if current_user.id == target_user.id:
+        posts = target_user.blog_posts
+    elif Friendship.query.filter_by(follower_id=current_user.id, followed_id=target_user.id).first():
+        posts = BlogPost.query.filter_by(author_id=target_user.id).all()
+    else:
+        posts = BlogPost.query.filter_by(author_id=target_user.id, is_public=True).all()
+
+    is_following = Friendship.query.filter_by(
+        follower_id=current_user.id, followed_id=target_user.id
+    ).first() is not None
+
+    return render_template("profile.html", user=target_user, posts=posts, is_following=is_following)
+
+# ---------- Follow ----------
+@main.route('/follow/<int:user_id>')
+@login_required
+def follow(user_id):
+    if user_id == current_user.id:
+        flash("You can't follow yourself.", "warning")
+        return redirect(url_for('main.view_profile', user_id=user_id))
+
+    existing = Friendship.query.filter_by(
+        follower_id=current_user.id, followed_id=user_id
+    ).first()
+
+    if not existing:
+        new_friend = Friendship(follower_id=current_user.id, followed_id=user_id)
+        db.session.add(new_friend)
+        db.session.commit()
+        flash("Followed successfully.", "success")
+    else:
+        flash("You're already following this user.", "info")
+
+    return redirect(url_for('main.view_profile', user_id=user_id))
+
+# ---------- Unfollow ----------
+@main.route('/unfollow/<int:user_id>')
+@login_required
+def unfollow(user_id):
+    friend = Friendship.query.filter_by(
+        follower_id=current_user.id, followed_id=user_id
+    ).first()
+
+    if friend:
+        db.session.delete(friend)
+        db.session.commit()
+        flash("Unfollowed.", "info")
+
+    return redirect(url_for('main.view_profile', user_id=user_id))
+
+# ---------- Search Users ----------
+@main.route('/search')
+@login_required
+def search():
+    query = request.args.get('q', '')
+    results = []
+
+    if query:
+        results = User.query.filter(
+            or_(
+                User.username.ilike(f"%{query}%"),
+                User.email.ilike(f"%{query}%")
+            )
+        ).all()
+
+    return render_template('search.html', query=query, results=results)
+
+# ---------- Chatbot ----------
 @main.route('/chatbot')
 def chatbot():
     if 'user_id' not in session:
@@ -100,7 +215,6 @@ def ask():
     data = request.get_json()
     user_message = data['message']
 
-    # Dummy AI response
     if 'driver' in user_message.lower():
         reply = "Your team's main driver is Max Verstappen."
     elif 'car' in user_message.lower():
@@ -112,41 +226,21 @@ def ask():
 
     return jsonify({'reply': reply})
 
-from flask_login import logout_user
-
-@main.route('/logout')
-def logout():
-    logout_user()  # 调用 Flask-Login 的 logout
-    session.clear()  # 清除 session
-    flash('You have been logged out.', 'info')
-    return redirect(url_for('main.login'))
-
+# ---------- Upload (Prediction?) ----------
 @main.route('/upload', methods=['GET', 'POST'])
 def upload():
     teams = [
-     {"name": "Ferrari", "image_url": "https://media.formula1.com/image/upload/f_auto,c_limit,q_auto,w_1320/content/dam/fom-website/2018-redesign-assets/team%20logos/ferrari.jpg"},
-    {"name": "Red Bull", "image_url": "https://media.formula1.com/image/upload/f_auto,c_limit,q_auto,w_1320/content/dam/fom-website/2018-redesign-assets/team%20logos/red%20bull.jpg"},
-    {"name": "Mercedes", "image_url": "https://media.formula1.com/image/upload/f_auto,c_limit,q_auto,w_1320/content/dam/fom-website/2018-redesign-assets/team%20logos/mercedes.jpg"},
-    {"name": "McLaren", "image_url": "https://media.formula1.com/image/upload/f_auto,c_limit,q_auto,w_1320/content/dam/fom-website/2018-redesign-assets/team%20logos/mclaren.jpg"}
+        {"name": "Ferrari", "image_url": "..."},
+        {"name": "Red Bull", "image_url": "..."},
+        {"name": "Mercedes", "image_url": "..."},
+        {"name": "McLaren", "image_url": "..."}
     ]
 
     drivers_by_team = {
-    "Ferrari": [
-        {"name": "Charles Leclerc", "image_url": "https://media.formula1.com/image/upload/f_auto,c_limit,q_auto,w_1320/content/dam/fom-website/drivers/2025Drivers/leclerc.jpg"},
-        {"name": "Lewis Hamilton", "image_url": "https://media.formula1.com/image/upload/f_auto,c_limit,q_auto,w_1320/content/dam/fom-website/drivers/2025Drivers/hamilton.jpg"}
-    ],
-    "Red Bull": [
-        {"name": "Max Verstappen", "image_url": "https://media.formula1.com/image/upload/f_auto,c_limit,q_auto,w_1320/content/dam/fom-website/drivers/2025Drivers/verstappen.jpg"},
-        {"name": "Liam Lawson", "image_url": "https://media.formula1.com/image/upload/f_auto,c_limit,q_auto,w_1320/content/dam/fom-website/drivers/2025Drivers/lawson.jpg"}
-    ],
-    "Mercedes": [
-        {"name": "George Russell", "image_url": "https://media.formula1.com/image/upload/f_auto,c_limit,q_auto,w_1320/content/dam/fom-website/drivers/2025Drivers/russell.jpg"},
-        {"name": "Andrea Kimi Antonelli", "image_url": "https://media.formula1.com/image/upload/f_auto,c_limit,q_auto,w_1320/content/dam/fom-website/drivers/2025Drivers/antonelli.jpg"}
-    ],
-    "McLaren": [
-        {"name": "Lando Norris", "image_url": "https://media.formula1.com/image/upload/f_auto,c_limit,q_auto,w_1320/content/dam/fom-website/drivers/2025Drivers/norris.jpg"},
-        {"name": "Oscar Piastri", "image_url": "https://media.formula1.com/image/upload/f_auto,c_limit,q_auto,w_1320/content/dam/fom-website/drivers/2025Drivers/piastri.jpg"}
-    ]
+        "Ferrari": [...],
+        "Red Bull": [...],
+        "Mercedes": [...],
+        "McLaren": [...]
     }
 
     if request.method == 'POST':
@@ -173,9 +267,7 @@ def upload():
 
     return render_template('upload.html', teams=teams, drivers_by_team=drivers_by_team)
 
-import requests
-from flask import request, jsonify
-
+# ---------- DeepSeek Chat API ----------
 @main.route("/chat", methods=["POST"])
 def chat():
     data = request.get_json()
@@ -185,25 +277,20 @@ def chat():
         return jsonify({"error": "No message provided"}), 400
 
     try:
-        # DeepSeek API endpoint
         response = requests.post(
             "https://api.deepseek.com/v1/chat/completions",
             headers={
-                "Authorization": "Bearer sk-840cc1a0773847b58044106e33e2119d",  # ✅ 你的 DeepSeek key
+                "Authorization": "Bearer sk-840cc1a0773847b58044106e33e2119d",
                 "Content-Type": "application/json"
             },
             json={
-                "model": "deepseek-chat",  # 官方默认模型名称
-                "messages": [
-                    {"role": "user", "content": user_message}
-                ]
+                "model": "deepseek-chat",
+                "messages": [{"role": "user", "content": user_message}]
             },
             timeout=30
         )
 
         output = response.json()
-        print("🧠 DeepSeek response:", output)
-
         if "choices" in output and output["choices"]:
             reply = output["choices"][0]["message"]["content"]
         else:
@@ -212,13 +299,12 @@ def chat():
         return jsonify({"reply": reply})
 
     except Exception as e:
-        print("❌ DeepSeek API error:", str(e))
         return jsonify({"error": f"DeepSeek API error: {str(e)}"}), 500
 
-
-
-
-
-
-
-
+# ---------- Logout ----------
+@main.route('/logout')
+def logout():
+    logout_user()
+    session.clear()
+    flash('You have been logged out.', 'info')
+    return redirect(url_for('main.login'))

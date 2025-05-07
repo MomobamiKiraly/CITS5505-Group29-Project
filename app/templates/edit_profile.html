@@ -3,16 +3,58 @@
 <head>
     <meta charset="UTF-8">
     <title>Edit Profile - F1 Predictor</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
 </head>
 <body>
-    <h2>Edit Your Profile</h2>
-    <form method="POST" action="/edit-profile">
-        <input type="text" name="username" value="{{ user.username }}" required><br><br>
-        <input type="email" name="email" value="{{ user.email }}" required><br><br>
-        <input type="text" name="favorite_team" value="{{ user.favorite_team }}"><br><br>
-        <input type="text" name="favorite_driver" value="{{ user.favorite_driver }}"><br><br>
-        <button type="submit">Save Changes</button>
-    </form>
-    <p><a href="/profile">Back to Profile</a></p>
+    <div class="login-container">
+
+        
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="alert alert-{{ category }}">
+                {{ message }}
+              </div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        <form method="POST" enctype="multipart/form-data">
+            <h2>Edit Profile</h2>
+
+            <div class="form-group">
+                <label class="label" for="username">Username</label>
+                <input class="input" type="text" name="username" value="{{ user.username }}" required>
+            </div>
+
+            <div class="form-group">
+                <label class="label" for="email">Email</label>
+                <input class="input" type="email" name="email" value="{{ user.email }}" required>
+            </div>
+
+            <div class="form-group">
+                <label class="label" for="favorite_team">Favorite Team</label>
+                <input class="input" type="text" name="favorite_team" value="{{ user.favorite_team }}">
+            </div>
+
+            <div class="form-group">
+                <label class="label" for="favorite_driver">Favorite Driver</label>
+                <input class="input" type="text" name="favorite_driver" value="{{ user.favorite_driver }}">
+            </div>
+
+            <div class="form-group">
+                <label class="label" for="bio">Bio</label>
+                <textarea class="input" name="bio">{{ user.bio }}</textarea>
+            </div>
+
+            <div class="form-group">
+                <label class="label" for="profile_pic">Profile Picture</label>
+                <input class="input" type="file" name="profile_pic">
+            </div>
+
+            <button type="submit" class="btn">Save Changes</button>
+        </form>
+
+    </div>
 </body>
 </html>
