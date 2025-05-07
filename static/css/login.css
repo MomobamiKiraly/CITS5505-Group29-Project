@@ -1,4 +1,4 @@
-body { 
+body {
     margin: 0;
     padding: 0;
     font-family: 'Arial', sans-serif;
@@ -51,7 +51,6 @@ h2 {
     background-color: darkred;
 }
 
-
 .alert {
     padding: 10px;
     margin-bottom: 15px;
@@ -73,19 +72,21 @@ h2 {
     background-color: rgba(23, 162, 184, 0.85); /* blue */
 }
 
-
-.register-link {
+.register-link,
+.form-footer {
     text-align: center;
     margin-top: 15px;
     font-size: 14px;
     color: white;
 }
 
-.register-link a {
+.register-link a,
+.form-footer a {
     color: #ff6666;
     text-decoration: none;
 }
 
-.register-link a:hover {
+.register-link a:hover,
+.form-footer a:hover {
     text-decoration: underline;
 }
