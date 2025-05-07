@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Your Friends</title>
+</head>
+<body>
+    <h1>👥 You're Following</h1>
+
+    {% if friends %}
+        <ul>
+        {% for friend in friends %}
+            <li>
+                <a href="{{ url_for('main.view_profile', user_id=friend.id) }}">
+                    {{ friend.username }}
+                </a>
+                ({{ friend.email }})
+                {% if current_user.is_friends_with(friend) %}
+                    <strong>💬 好友</strong>
+                {% endif %}
+                &nbsp;
+                <a href="{{ url_for('main.unfollow', user_id=friend.id) }}">[取消关注]</a>
+            </li>
+        {% endfor %}
+        </ul>
+    {% else %}
+        <p>You are not following anyone yet.</p>
+    {% endif %}
+
+    <p><a href="{{ url_for('main.search') }}">🔍 Search for Users</a></p>
+</body>
+</html>
