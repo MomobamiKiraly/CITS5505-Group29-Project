@@ -104,14 +104,40 @@ def edit_profile():
     return render_template('edit_profile.html', user=user)
 
 # ---------- Current User Profile ----------
-@main.route('/profile')
+@main.route('/profile', methods=['GET', 'POST'])
+@login_required
 def profile():
-    if 'user_id' not in session:
-        return redirect(url_for('main.login'))
+    user = User.query.get_or_404(session['user_id'])
 
-    user = User.query.get(session['user_id'])
+    # --- Handle blog post submission ---
+    if request.method == 'POST':
+        title = request.form['title']
+        content = request.form['content']
+        is_public = request.form.get('is_public') == 'on'
+
+        post = BlogPost(
+            author=user,
+            title=title,
+            content=content,
+            is_public=is_public,
+            timestamp=datetime.utcnow()
+        )
+        db.session.add(post)
+        db.session.commit()
+        flash("Blog post published!", "success")
+        return redirect(url_for('main.profile'))
+
+    # --- Prepare page content ---
     predictions = Prediction.query.filter_by(user_id=user.id).all()
-    return render_template('profile.html', user=user, predictions=predictions)
+    posts = BlogPost.query.filter_by(author_id=user.id).all()
+
+    return render_template(
+        'profile.html',
+        user=user,
+        predictions=predictions,
+        posts=posts,
+        is_following=None  # Not relevant for self-profile
+    )
 
 # ---------- Any User Profile + Blog ----------
 @main.route('/profile/<int:user_id>', methods=['GET', 'POST'])
