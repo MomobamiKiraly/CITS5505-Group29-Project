@@ -93,6 +93,7 @@
     <!-- Navigation Links -->
     {% if user.id == current_user.id %}
         <div class="blog-post" style="text-align: center;">
+            <a href="{{ url_for('main.upload') }}">Make Prediction</a> |
             <a href="{{ url_for('main.dashboard') }}">Go to Dashboard</a> |
             <a href="{{ url_for('main.chatbot') }}">Ask the AI Chatbot</a> |
             <a href="{{ url_for('main.logout') }}">Logout</a>
