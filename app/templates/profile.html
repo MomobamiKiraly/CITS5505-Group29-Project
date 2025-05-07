@@ -1,87 +1,103 @@
-<!doctype html> 
+<!doctype html>  
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <title>{{ user.username }}'s Profile</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/profile_dense.css') }}">
     <script src="{{ url_for('static', filename='js/profile.js') }}"></script>
 </head>
 <body>
-    <h1>Welcome, {{ user.username }}!</h1>
+<div class="container">
 
-    <!-- Profile Picture -->
-    <img src="{{ url_for('static', filename='profile_pics/' + (user.profile_pic if user.profile_pic else 'default.jpg')) }}"
-         alt="Profile Picture" width="150">
+    <!-- Header: Avatar + Info -->
+    <div class="header">
+        <img src="{{ url_for('static', filename='profile_pics/' + (user.profile_pic if user.profile_pic else 'default.jpg')) }}"
+             alt="Profile Picture">
 
-    <!-- Follow/Unfollow button -->
-    {% if user.id != current_user.id %}
-        <div class="follow-btn">
-            {% if is_following %}
-                <a href="{{ url_for('main.unfollow', user_id=user.id) }}">Unfollow</a>
-            {% else %}
-                <a href="{{ url_for('main.follow', user_id=user.id) }}">Follow</a>
+        <div class="header-info">
+            <h2>{{ user.username }}</h2>
+            <p>Email: {{ user.email }}</p>
+            {% if user.favorite_team %}
+            <p>Team: {{ user.favorite_team }}</p>
             {% endif %}
+            {% if user.favorite_driver %}
+            <p>Driver: {{ user.favorite_driver }}</p>
+            {% endif %}
+            {% if user.bio %}
+            <p><em>{{ user.bio }}</em></p>
+            {% endif %}
+        </div>
+
+        <!-- Follow / Edit -->
+        <div class="follow-btn">
+            {% if user.id != current_user.id %}
+                {% if is_following %}
+                    <a href="{{ url_for('main.unfollow', user_id=user.id) }}">Unfollow</a>
+                {% else %}
+                    <a href="{{ url_for('main.follow', user_id=user.id) }}">Follow</a>
+                {% endif %}
+            {% else %}
+                <a href="{{ url_for('main.edit_profile') }}">Edit</a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Blog Post Form (Self Only) -->
+    {% if user.id == current_user.id %}
+    <div class="blog-form">
+        <form method="POST">
+            <input type="text" name="title" placeholder="What's on your mind?" required>
+            <textarea name="content" placeholder="Write your blog..." required></textarea>
+            <p>
+                <input type="checkbox" name="is_public" id="is_public" checked>
+                <label for="is_public">Make public</label>
+            </p>
+            <button type="submit">Post</button>
+        </form>
+    </div>
+    {% endif %}
+
+    <!-- Blog Posts -->
+    {% if posts %}
+        {% for post in posts %}
+        <div class="blog-post">
+            <h3>{{ post.title }}</h3>
+            <small>{{ post.timestamp.strftime('%Y-%m-%d %H:%M') }}</small>
+            <p>{{ post.content }}</p>
+            {% if not post.is_public %}
+                <span class="badge-private">Followers Only</span>
+            {% endif %}
+        </div>
+        {% endfor %}
+    {% else %}
+        <p style="color: #888;">No blog posts yet.</p>
+    {% endif %}
+
+    <!-- Predictions -->
+    {% if predictions %}
+        <div class="blog-post">
+            <h3>Your Predictions</h3>
+            <ul>
+                {% for prediction in predictions %}
+                <li>{{ prediction.race_name }} - {{ prediction.prediction_result or 'No result' }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% else %}
+        <div class="blog-post">
+            <h3>Your Predictions</h3>
+            <p style="color: #888;">No predictions yet.</p>
         </div>
     {% endif %}
 
-    <!-- Personal Info -->
-    <h2>Personal Information</h2>
-    <ul>
-        <li><strong>Username:</strong> {{ user.username }}</li>
-        <li><strong>Email:</strong> {{ user.email }}</li>
-        <li><strong>Favorite Team:</strong> {{ user.favorite_team or 'Not set' }}</li>
-        <li><strong>Favorite Driver:</strong> {{ user.favorite_driver or 'Not set' }}</li>
-        <li><strong>Bio:</strong> {{ user.bio or 'No bio provided.' }}</li>
-    </ul>
-
-    <!-- Blog Post Form (only for self) -->
+    <!-- Navigation Links -->
     {% if user.id == current_user.id %}
-    <h2>Create a Blog Post</h2>
-    <form method="POST" class="blog-form">
-        <p><input type="text" name="title" placeholder="Post title" required></p>
-        <p><textarea name="content" placeholder="Write your thoughts..." required></textarea></p>
-        <p>
-            <input type="checkbox" name="is_public" id="is_public" checked>
-            <label for="is_public">Make public</label>
-        </p>
-        <p><button type="submit">Publish</button></p>
-    </form>
+        <div class="blog-post" style="text-align: center;">
+            <a href="{{ url_for('main.chatbot') }}">Ask the AI Chatbot</a> |
+            <a href="{{ url_for('main.logout') }}">Logout</a>
+        </div>
     {% endif %}
 
-    <!-- Blog Post List -->
-    <h2>Blog Posts</h2>
-    {% if posts %}
-        {% for post in posts %}
-            <div class="blog-post">
-                <h3>{{ post.title }}</h3>
-                <small>{{ post.timestamp.strftime('%Y-%m-%d %H:%M') }}</small>
-                <p>{{ post.content }}</p>
-                {% if not post.is_public %}
-                    <p><em><small>Visible to followers only</small></em></p>
-                {% endif %}
-            </div>
-        {% endfor %}
-    {% else %}
-        <p>No blog posts yet.</p>
-    {% endif %}
-
-    <!-- Predictions Section -->
-    {% if predictions %}
-        <h2>Your Predictions</h2>
-        <ul>
-        {% for prediction in predictions %}
-            <li>{{ prediction.race_name }} - {{ prediction.prediction_result or 'No result' }}</li>
-        {% endfor %}
-        </ul>
-    {% else %}
-        <p>No predictions yet.</p>
-    {% endif %}
-
-    <br>
-    {% if user.id == current_user.id %}
-        <a href="{{ url_for('main.edit_profile') }}">Edit Profile</a> |
-        <a href="{{ url_for('main.chatbot') }}">Ask the AI Chatbot</a> |
-        <a href="{{ url_for('main.logout') }}">Logout</a>
-    {% endif %}
+</div>
 </body>
 </html>
