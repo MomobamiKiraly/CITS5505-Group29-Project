@@ -40,6 +40,19 @@ class User(db.Model, UserMixin):
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
 
+    # ---------- Friend System ----------
+    def is_following(self, user):
+        return self.following.filter_by(followed_id=user.id).first() is not None
+
+    def is_followed_by(self, user):
+        return self.followers.filter_by(follower_id=user.id).first() is not None
+
+    def is_friends_with(self, user):
+        return self.is_following(user) and self.is_followed_by(user)
+
+    def get_following_list(self):
+        """返回所有我关注的用户（不要求互关）"""
+        return [f.followed for f in self.following]
 
 # ---------- Prediction Model ----------
 class Prediction(db.Model):
@@ -50,7 +63,6 @@ class Prediction(db.Model):
     actual_winner = db.Column(db.String(80))
     points = db.Column(db.Integer)
 
-
 # ---------- BlogPost Model ----------
 class BlogPost(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -59,7 +71,6 @@ class BlogPost(db.Model):
     content = db.Column(db.Text, nullable=False)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
     is_public = db.Column(db.Boolean, default=True)  # True: visible to all; False: followers only
-
 
 # ---------- Friendship Model ----------
 class Friendship(db.Model):

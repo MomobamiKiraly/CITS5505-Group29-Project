@@ -18,6 +18,13 @@ main = Blueprint('main', __name__)
 def home():
     return redirect(url_for('main.login'))
 
+# ---------- Friend List ----------
+@main.route('/friends')
+@login_required
+def friends():
+    following = current_user.get_following_list()
+    return render_template('friends.html', friends=following)
+
 # ---------- Login ----------
 @main.route('/login', methods=['GET', 'POST'])
 def login():
