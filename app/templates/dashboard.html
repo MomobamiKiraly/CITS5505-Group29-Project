@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>🏁 F1 Dashboard</title>
+</head>
+<body>
+  <h1>🏁 F1 Dashboard</h1>
+
+  <!-- Link to Profile -->
+  <p><a href="{{ url_for('main.profile') }}">👤 Go to My Profile</a></p>
+
+  <!-- Standings Chart -->
+  {% if chart_path %}
+    <img src="{{ chart_path }}" alt="Standings Chart" width="600">
+  {% else %}
+    <p>No chart available.</p>
+  {% endif %}
+
+  <!-- Driver List -->
+  <h2>Top 5 Drivers</h2>
+  <ul>
+    {% for driver in standings[:5] %}
+      <li>{{ driver.driver.name }} — {{ driver.points }} pts</li>
+    {% else %}
+      <li>No driver data found.</li>
+    {% endfor %}
+  </ul>
+
+  <!-- Next Race Info -->
+  {% if next_race %}
+    <h2>Next Race</h2>
+    <p>
+      <strong>{{ next_race.race.raceName }}</strong><br>
+      {{ next_race.race.date }} — {{ next_race.race.circuit.location.locality }}
+    </p>
+  {% else %}
+    <p>No upcoming race data.</p>
+  {% endif %}
+</body>
+</html>

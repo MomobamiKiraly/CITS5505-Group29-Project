@@ -1,4 +1,4 @@
-import openai
+import openai 
 import os
 import requests
 from datetime import datetime
@@ -9,6 +9,7 @@ from sqlalchemy import or_
 from app.forms import LoginForm
 from app.models import User, Prediction, BlogPost, Friendship
 from app import db
+import matplotlib.pyplot as plt
 
 main = Blueprint('main', __name__)
 
@@ -21,7 +22,7 @@ def home():
 @main.route('/login', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
-        return redirect(url_for('main.profile'))
+        return redirect(url_for('main.dashboard'))
 
     form = LoginForm()
     if form.validate_on_submit():
@@ -30,7 +31,7 @@ def login():
             login_user(user)
             session['user_id'] = user.id
             flash('Login successful!', 'success')
-            return redirect(url_for('main.profile'))
+            return redirect(url_for('main.dashboard'))
         else:
             flash('Invalid username or password', 'danger')
     return render_template('login.html', form=form)
@@ -94,6 +95,91 @@ def register():
         return redirect(url_for('main.login'))
 
     return render_template('register.html', teams=teams, drivers_by_team=drivers_by_team)
+
+
+# ---------- Dashboard ----------
+def generate_standings_chart(standings):
+    import matplotlib.pyplot as plt
+    import os
+    from flask import current_app
+
+    print("📊 generate_standings_chart called")
+    print("Driver names:", [item['driver']['name'] for item in standings[:5]])
+
+    names = [item['driver']['name'] for item in standings[:5]]
+    points = [item['points'] for item in standings[:5]]
+    colors = ['red', 'orange', 'blue', 'green', 'purple']
+
+    fig, ax = plt.subplots(figsize=(8, 4))
+    for i, (name, point) in enumerate(zip(names, points)):
+        ax.plot([0, point], [i, i], lw=8, color=colors[i])
+        ax.text(point + 1, i, f"{name} ({point})", va='center')
+
+    ax.set_xlim(0, max(points) + 10)
+    ax.set_yticks([])
+    ax.set_xticks([])
+    ax.set_title("F1 Driver Standings")
+
+    # 🔧 改为项目根目录/static/charts/
+    chart_dir = os.path.join(os.path.dirname(current_app.root_path), 'static', 'charts')
+    os.makedirs(chart_dir, exist_ok=True)
+    chart_path = os.path.join(chart_dir, 'standings.png')
+    print("✅ Saving chart to:", chart_path)
+
+    plt.savefig(chart_path, bbox_inches='tight')
+    plt.close()
+
+    return '/static/charts/standings.png'
+
+@main.route('/dashboard')
+@login_required
+def dashboard():
+    try:
+        standings_url = "http://api.jolpi.ca/ergast/f1/current/driverStandings.json"
+        next_race_url = "http://api.jolpi.ca/ergast/f1/current/next.json"
+
+        standings_resp = requests.get(standings_url, timeout=10)
+        next_race_resp = requests.get(next_race_url, timeout=10)
+
+        if standings_resp.ok and next_race_resp.ok:
+            standings_data = standings_resp.json()
+            next_race_data = next_race_resp.json()
+
+            standings_list = standings_data['MRData']['StandingsTable']['StandingsLists'][0]['DriverStandings']
+
+            standings = [
+                {
+                    'driver': {
+                        'name': f"{d['Driver']['givenName']} {d['Driver']['familyName']}"
+                    },
+                    'points': int(d['points'])
+                }
+                for d in standings_list
+            ]
+
+            next_race = next_race_data['MRData']['RaceTable']['Races'][0] if next_race_data['MRData']['RaceTable']['Races'] else None
+            next_race_parsed = {
+                'race': {
+                    'raceName': next_race['raceName'],
+                    'date': next_race['date'],
+                    'circuit': {
+                        'location': {
+                            'locality': next_race['Circuit']['Location']['locality']
+                        }
+                    }
+                }
+            } if next_race else None
+
+            chart_path = generate_standings_chart(standings)
+        else:
+            flash("Unable to fetch F1 data.", "danger")
+            standings, next_race_parsed, chart_path = [], None, None
+
+    except Exception as e:
+        flash(f"Error fetching F1 data: {str(e)}", "danger")
+        standings, next_race_parsed, chart_path = [], None, None
+
+    return render_template("dashboard.html", standings=standings, next_race=next_race_parsed, chart_path=chart_path)
 
 
 # ---------- Forgot Password ----------
