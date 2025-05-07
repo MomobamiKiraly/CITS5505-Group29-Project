@@ -1,38 +1,41 @@
 import openai
 import os
 import requests
+from datetime import datetime
 from flask import Blueprint, render_template, redirect, url_for, flash, request, session, jsonify, current_app
-from flask_login import login_user, logout_user
+from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.utils import secure_filename
+from sqlalchemy import or_
 from app.forms import LoginForm
-from app.models import User, Prediction
+from app.models import User, Prediction, BlogPost, Friendship
 from app import db
 
 main = Blueprint('main', __name__)
 
+# ---------- Home ----------
 @main.route('/')
 def home():
     return redirect(url_for('main.login'))
 
-from flask_login import login_user, current_user
-
+# ---------- Login ----------
 @main.route('/login', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
-        return redirect(url_for('main.profile'))  # Redirect if already logged in
+        return redirect(url_for('main.profile'))
 
     form = LoginForm()
     if form.validate_on_submit():
         user = User.query.filter_by(username=form.username.data).first()
         if user and user.check_password(form.password.data):
             login_user(user)
-            session['user_id'] = user.id  # Store user ID in session
+            session['user_id'] = user.id
             flash('Login successful!', 'success')
             return redirect(url_for('main.profile'))
         else:
             flash('Invalid username or password', 'danger')
     return render_template('login.html', form=form)
 
+# ---------- Register ----------
 @main.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
@@ -45,7 +48,7 @@ def register():
             flash('Username or email already exists.', 'danger')
             return redirect(url_for('main.register'))
 
-        new_user= User(username=username, email=email)
+        new_user = User(username=username, email=email)
         new_user.set_password(password)
         new_user.profile_pic = 'default.jpg'
         db.session.add(new_user)
@@ -56,6 +59,7 @@ def register():
 
     return render_template('register.html')
 
+# ---------- Forgot Password ----------
 @main.route('/forgot-password', methods=['GET', 'POST'])
 def forgot_password():
     if request.method == 'POST':
@@ -68,6 +72,7 @@ def forgot_password():
         return redirect(url_for('main.login'))
     return render_template('forgot_password.html')
 
+# ---------- Edit Profile ----------
 @main.route('/edit-profile', methods=['GET', 'POST'])
 def edit_profile():
     if 'user_id' not in session:
@@ -82,7 +87,6 @@ def edit_profile():
         user.favorite_driver = request.form.get('favorite_driver')
         user.bio = request.form.get('bio')
 
-        # Handle profile picture upload
         if 'profile_pic' in request.files:
             file = request.files['profile_pic']
             if file and file.filename:
@@ -99,6 +103,7 @@ def edit_profile():
 
     return render_template('edit_profile.html', user=user)
 
+# ---------- Current User Profile ----------
 @main.route('/profile')
 def profile():
     if 'user_id' not in session:
@@ -108,6 +113,97 @@ def profile():
     predictions = Prediction.query.filter_by(user_id=user.id).all()
     return render_template('profile.html', user=user, predictions=predictions)
 
+# ---------- Any User Profile + Blog ----------
+@main.route('/profile/<int:user_id>', methods=['GET', 'POST'])
+@login_required
+def view_profile(user_id):
+    target_user = User.query.get_or_404(user_id)
+
+    if request.method == 'POST' and current_user.id == target_user.id:
+        title = request.form['title']
+        content = request.form['content']
+        is_public = request.form.get('is_public') == 'on'
+
+        new_post = BlogPost(
+            author=current_user,
+            title=title,
+            content=content,
+            is_public=is_public,
+            timestamp=datetime.utcnow()
+        )
+        db.session.add(new_post)
+        db.session.commit()
+        flash("Blog post published!", "success")
+        return redirect(url_for('main.view_profile', user_id=user_id))
+
+    if current_user.id == target_user.id:
+        posts = target_user.blog_posts
+    elif Friendship.query.filter_by(follower_id=current_user.id, followed_id=target_user.id).first():
+        posts = BlogPost.query.filter_by(author_id=target_user.id).all()
+    else:
+        posts = BlogPost.query.filter_by(author_id=target_user.id, is_public=True).all()
+
+    is_following = Friendship.query.filter_by(
+        follower_id=current_user.id, followed_id=target_user.id
+    ).first() is not None
+
+    return render_template("profile.html", user=target_user, posts=posts, is_following=is_following)
+
+# ---------- Follow ----------
+@main.route('/follow/<int:user_id>')
+@login_required
+def follow(user_id):
+    if user_id == current_user.id:
+        flash("You can't follow yourself.", "warning")
+        return redirect(url_for('main.view_profile', user_id=user_id))
+
+    existing = Friendship.query.filter_by(
+        follower_id=current_user.id, followed_id=user_id
+    ).first()
+
+    if not existing:
+        new_friend = Friendship(follower_id=current_user.id, followed_id=user_id)
+        db.session.add(new_friend)
+        db.session.commit()
+        flash("Followed successfully.", "success")
+    else:
+        flash("You're already following this user.", "info")
+
+    return redirect(url_for('main.view_profile', user_id=user_id))
+
+# ---------- Unfollow ----------
+@main.route('/unfollow/<int:user_id>')
+@login_required
+def unfollow(user_id):
+    friend = Friendship.query.filter_by(
+        follower_id=current_user.id, followed_id=user_id
+    ).first()
+
+    if friend:
+        db.session.delete(friend)
+        db.session.commit()
+        flash("Unfollowed.", "info")
+
+    return redirect(url_for('main.view_profile', user_id=user_id))
+
+# ---------- Search Users ----------
+@main.route('/search')
+@login_required
+def search():
+    query = request.args.get('q', '')
+    results = []
+
+    if query:
+        results = User.query.filter(
+            or_(
+                User.username.ilike(f"%{query}%"),
+                User.email.ilike(f"%{query}%")
+            )
+        ).all()
+
+    return render_template('search.html', query=query, results=results)
+
+# ---------- Chatbot ----------
 @main.route('/chatbot')
 def chatbot():
     if 'user_id' not in session:
@@ -130,13 +226,7 @@ def ask():
 
     return jsonify({'reply': reply})
 
-@main.route('/logout')
-def logout():
-    logout_user()
-    session.clear()
-    flash('You have been logged out.', 'info')
-    return redirect(url_for('main.login'))
-
+# ---------- Upload (Prediction?) ----------
 @main.route('/upload', methods=['GET', 'POST'])
 def upload():
     teams = [
@@ -177,6 +267,7 @@ def upload():
 
     return render_template('upload.html', teams=teams, drivers_by_team=drivers_by_team)
 
+# ---------- DeepSeek Chat API ----------
 @main.route("/chat", methods=["POST"])
 def chat():
     data = request.get_json()
@@ -210,10 +301,10 @@ def chat():
     except Exception as e:
         return jsonify({"error": f"DeepSeek API error: {str(e)}"}), 500
 
-
-
-
-
-
-
-
+# ---------- Logout ----------
+@main.route('/logout')
+def logout():
+    logout_user()
+    session.clear()
+    flash('You have been logged out.', 'info')
+    return redirect(url_for('main.login'))
