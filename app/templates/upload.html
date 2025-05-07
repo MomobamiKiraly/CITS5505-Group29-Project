@@ -4,280 +4,72 @@
 <head>
     <meta charset="UTF-8">
     <title>Upload Prediction</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
             background-color: #111;
-            font-family: 'Helvetica Neue', sans-serif;
             color: white;
+            font-family: 'Helvetica Neue', sans-serif;
         }
 
         .container {
+            margin-top: 50px;
             background-color: #1c1c1c;
-            color: white;
+            padding: 30px;
+            border-radius: 10px;
         }
 
-        h2 {
-            color: #e10600 !important;
-        }
-
-        h2,
-        h4 {
+        label {
             font-weight: bold;
-            text-transform: uppercase;
-            color: #fff;
+            margin-top: 10px;
         }
 
         .form-control,
         .form-select {
             background-color: #333;
+            color: white;
             border: 1px solid #555;
-            color: white;
-        }
-
-        .form-control::placeholder {
-            color: #bbb;
-        }
-
-        .form-select option {
-            background-color: #1c1c1c;
-            color: white;
         }
 
         .btn-primary {
             background-color: #e10600;
-            border-color: #e10600;
-        }
-
-        .btn-secondary {
-            background-color: #555;
-            border-color: #555;
-        }
-
-        .btn-success {
-            background-color: #28a745;
-        }
-
-        .team {
-            background-color: white;
-            padding: 10px;
-            border-radius: 10px;
-        }
-
-        .team,
-        .driver {
-            border: 3px solid transparent;
-            transition: 0.3s ease;
-            border-radius: 10px;
-        }
-
-        .team:hover,
-        .driver:hover {
-            border-color: #e10600;
-        }
-
-        .selected {
-            border-color: #e10600 !important;
-        }
-
-        .badge.bg-primary {
-            background-color: #e10600;
-            font-size: 0.9rem;
-        }
-
-        select,
-        input {
-            border-radius: 6px;
-        }
-
-        .shadow {
-            box-shadow: 0 0px 15px red !important;
-        }
-
-        .step {
-            display: none;
-        }
-
-        .step.active {
-            display: block;
+            border: none;
+            margin-top: 20px;
         }
     </style>
 </head>
 
-<body class="bg-dark p-5">
-    <div class="container bg-dark p-4 shadow rounded">
-        <h2>Upload Your F1 Prediction</h2>
-        <form method="POST">
-            <!-- Step 1: Personal Info -->
-            <div class="step active" id="step1">
-                <h4>Step 1: Personal Info</h4>
-                <input class="form-control mb-2" type="text" name="full_name" placeholder="Full Name" required>
-                <input class="form-control mb-2" type="number" name="age" placeholder="Age" required>
-                <button class="btn btn-primary mt-2" type="button" onclick="nextStep()">Next</button>
-            </div>
-
-            <!-- Step 2: Team & Driver -->
-            <div class="step" id="step2">
-                <h4>Step 2: Choose Team</h4>
-                <div class="row text-center">
-                    {% for team in teams %}
-                    <div class="col-6 mb-3">
-                        <img src="{{ team.image_url }}" class="team img-fluid p-2" onclick="selectTeam(this)"
-                            data-value="{{ team.name }}">
-                    </div>
-                    {% endfor %}
-                </div>
-                <input type="hidden" name="team" id="teamInput">
-
-                <div id="driverSection" style="display: none;">
-                    <h4 class="mt-4">Choose Driver</h4>
-                    <div class="row text-center" id="driverContainer"></div>
-                    <input type="hidden" name="driver" id="driverInput">
-                </div>
-
-                <button class="btn btn-secondary mt-3" type="button" onclick="prevStep()">Back</button>
-                <button class="btn btn-primary mt-3" type="button" onclick="nextStep()">Next</button>
-            </div>
-
-            <!-- Step 3: Predictions -->
-            <div class="step" id="step3">
-                <h4>Step 3: Predictions</h4>
-
-                <label for="race_winner" class="form-label">Who will win the next race?</label>
-                <select class="form-select mb-3" name="race_winner" id="race_winner" required>
-                    <option value="">-- None --</option>
-                    {% for team in teams %}
-                    <option value="{{ team.name }}">{{ team.name }}</option>
-                    {% endfor %}
-                </select>
-
-                <label class="form-label">Who will be the top 3 finishers?</label>
-                <div class="mb-3">
-                    <select class="form-select" id="top_3_select">
-                        <option value="">-- None --</option>
-                        {% for team, drivers in drivers_by_team.items() %}
-                        {% for driver in drivers %}
-                        <option value="{{ driver.name }} ({{ team }})">{{ driver.name }} ({{ team }})</option>
-                        {% endfor %}
-                        {% endfor %}
-                    </select>
-                    <div id="top_3_tags" class="mt-2"></div>
-                    <input type="hidden" name="top_3" id="top_3_input">
-                </div>
-
-                <label for="fastest_lap" class="form-label">Who will be the fastest lap driver?</label>
-                <select class="form-select mb-3" name="fastest_lap" id="fastest_lap" required>
-                    <option value="">-- None --</option>
+<body>
+    <div class="container">
+        <h2 class="text-center text-danger mb-4">Race Prediction</h2>
+        <form method="POST" action="{{ url_for('main.upload') }}">
+            <div class="mb-3">
+                <label for="predicted_winner" class="form-label">Predicted Race Winner</label>
+                <select class="form-select" name="predicted_winner" id="predicted_winner" required>
+                    <option value="">-- Select Winner --</option>
                     {% for team, drivers in drivers_by_team.items() %}
                     {% for driver in drivers %}
-                    <option value="{{ driver.name }} ({{ team }})">{{ driver.name }} ({{ team }})</option>
+                    <option value="{{ driver.name }}">{{ driver.name }} ({{ team }})</option>
                     {% endfor %}
                     {% endfor %}
                 </select>
-
-                <button class="btn btn-secondary" type="button" onclick="prevStep()">Back</button>
-                <button class="btn btn-success" type="submit">Submit</button>
             </div>
 
+            <div class="mb-3">
+                <label for="fastest_lap" class="form-label">Fastest Lap Driver</label>
+                <select class="form-select" name="fastest_lap" id="fastest_lap" required>
+                    <option value="">-- Select Driver --</option>
+                    {% for team, drivers in drivers_by_team.items() %}
+                    {% for driver in drivers %}
+                    <option value="{{ driver.name }}">{{ driver.name }} ({{ team }})</option>
+                    {% endfor %}
+                    {% endfor %}
+                </select>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100">Submit Prediction</button>
         </form>
     </div>
-
-    <script>
-        let current = 0;
-        const steps = document.querySelectorAll('.step');
-        const driversByTeam = {{ drivers_by_team | tojson }};
-
-        function nextStep() {
-            if (current < steps.length - 1) {
-                steps[current].classList.remove('active');
-                current++;
-                steps[current].classList.add('active');
-            }
-        }
-
-        function prevStep() {
-            if (current > 0) {
-                steps[current].classList.remove('active');
-                current--;
-                steps[current].classList.add('active');
-            }
-        }
-
-        function selectTeam(el) {
-            document.querySelectorAll('.team').forEach(e => e.classList.remove('selected'));
-            el.classList.add('selected');
-            document.getElementById('teamInput').value = el.dataset.value;
-
-            // Show driver section and update drivers
-            document.getElementById('driverSection').style.display = 'block';
-            updateDrivers(el.dataset.value);
-        }
-
-        function updateDrivers(teamName) {
-            const driverContainer = document.getElementById('driverContainer');
-            driverContainer.innerHTML = '';
-
-            if (driversByTeam[teamName]) {
-                driversByTeam[teamName].forEach(driver => {
-                    const col = document.createElement('div');
-                    col.className = 'col-6 mb-3';
-
-                    const name = document.createElement('p');
-                    name.innerText = driver.name;
-                    name.className = 'fw-bold';
-
-                    const img = document.createElement('img');
-                    img.src = driver.image_url;
-                    img.alt = driver.name;
-                    img.className = 'driver img-fluid p-2';
-                    img.setAttribute('data-value', driver.name);
-                    img.onclick = function () {
-                        document.querySelectorAll('.driver').forEach(d => d.classList.remove('selected'));
-                        img.classList.add('selected');
-                        document.getElementById('driverInput').value = driver.name;
-                    };
-
-                    col.appendChild(name);
-                    col.appendChild(img);
-                    driverContainer.appendChild(col);
-                });
-            }
-        }
-    </script>
-    <script>
-        // Top 3 tag logic
-        const top3Select = document.getElementById('top_3_select');
-        const top3TagsContainer = document.getElementById('top_3_tags');
-        const top3Input = document.getElementById('top_3_input');
-        let top3Selections = [];
-
-        top3Select.addEventListener('change', function () {
-            const selected = this.value;
-            if (selected && !top3Selections.includes(selected) && top3Selections.length < 3) {
-                top3Selections.push(selected);
-                updateTop3Tags();
-                top3Select.value = '';
-            }
-        });
-
-        function updateTop3Tags() {
-            top3TagsContainer.innerHTML = '';
-            top3Selections.forEach((item, index) => {
-                const tag = document.createElement('span');
-                tag.className = 'badge bg-primary me-1';
-                tag.innerHTML = `${item} <span class="ms-1" style="cursor:pointer;" onclick="removeTop3(${index})">&times;</span>`;
-                top3TagsContainer.appendChild(tag);
-            });
-            top3Input.value = top3Selections.join(';');
-        }
-
-        function removeTop3(index) {
-            top3Selections.splice(index, 1);
-            updateTop3Tags();
-        }
-    </script>
-
 </body>
 
 </html>
