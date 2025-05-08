@@ -3,30 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <title>Your Friends</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/friends.css') }}">
+    <script src="{{ url_for('static', filename='js/friends.js') }}"></script>
 </head>
 <body>
+
+<div class="navbar">
+    <div class="nav-links">
+        <a href="{{ url_for('main.dashboard') }}">🏁 Dashboard</a>
+        <a href="{{ url_for('main.profile') }}">👤 My Profile</a>
+        <a href="{{ url_for('main.chatbot') }}">🤖 AI Chatbot</a>
+        <a href="{{ url_for('main.logout') }}">🚪 Logout</a>
+    </div>
+</div>
+
+<div class="container">
     <h1>👥 You're Following</h1>
 
     {% if friends %}
-        <ul>
+        <ul class="friend-list">
         {% for friend in friends %}
             <li>
-                <a href="{{ url_for('main.view_profile', user_id=friend.id) }}">
-                    {{ friend.username }}
-                </a>
-                ({{ friend.email }})
+                <a href="{{ url_for('main.view_profile', user_id=friend.id) }}" class="username">{{ friend.username }}</a>
+                <span class="email">({{ friend.email }})</span>
                 {% if current_user.is_friends_with(friend) %}
-                    <strong>💬 好友</strong>
+                    <span class="badge-friend">💬 好友</span>
                 {% endif %}
-                &nbsp;
-                <a href="{{ url_for('main.unfollow', user_id=friend.id) }}">[取消关注]</a>
+                <a class="btn-unfollow" href="{{ url_for('main.unfollow', user_id=friend.id) }}">取消关注</a>
             </li>
         {% endfor %}
         </ul>
     {% else %}
-        <p>You are not following anyone yet.</p>
+        <p class="empty">You are not following anyone yet.</p>
     {% endif %}
 
-    <p><a href="{{ url_for('main.search') }}">🔍 Search for Users</a></p>
+    <p class="search-link"><a href="{{ url_for('main.search') }}">🔍 Search for Users</a></p>
+</div>
+
 </body>
 </html>

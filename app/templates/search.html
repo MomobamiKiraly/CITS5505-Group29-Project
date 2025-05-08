@@ -3,11 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <title>Search Users</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/search.css') }}">
+    <script src="{{ url_for('static', filename='js/search.js') }}"></script>
 </head>
 <body>
+
+<div class="navbar">
+    <div class="nav-links">
+        <a href="{{ url_for('main.dashboard') }}">🏁 Dashboard</a>
+        <a href="{{ url_for('main.profile') }}">👤 My Profile</a>
+        <a href="{{ url_for('main.friends') }}">👥 Friends</a>
+        <a href="{{ url_for('main.logout') }}">🚪 Logout</a>
+    </div>
+</div>
+
+<div class="container">
     <h1>🔍 Search for Users</h1>
 
-    <form action="{{ url_for('main.search') }}" method="get">
+    <form action="{{ url_for('main.search') }}" method="get" class="search-form">
         <input type="text" name="q" placeholder="Search by username or email..." value="{{ query }}">
         <button type="submit">Search</button>
     </form>
@@ -15,21 +28,21 @@
     {% if query %}
         <h2>Results for "{{ query }}"</h2>
         {% if results %}
-            <ul>
+            <ul class="search-results">
                 {% for user in results %}
                     <li>
-                        <a href="{{ url_for('main.view_profile', user_id=user.id) }}">
-                            {{ user.username }}
-                        </a>
-                        ({{ user.email }})
+                        <a href="{{ url_for('main.view_profile', user_id=user.id) }}" class="username">{{ user.username }}</a>
+                        <span class="email">({{ user.email }})</span>
                     </li>
                 {% endfor %}
             </ul>
         {% else %}
-            <p>No matching users found.</p>
+            <p class="empty">No matching users found.</p>
         {% endif %}
     {% endif %}
 
-    <p><a href="{{ url_for('main.dashboard') }}">← Back to Dashboard</a></p>
+    <p class="back-link"><a href="{{ url_for('main.dashboard') }}">← Back to Dashboard</a></p>
+</div>
+
 </body>
 </html>
