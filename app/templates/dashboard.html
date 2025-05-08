@@ -3,39 +3,50 @@
 <head>
   <meta charset="UTF-8">
   <title>🏁 F1 Dashboard</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
 </head>
 <body>
-  <h1>🏁 F1 Dashboard</h1>
+  <div class="navbar">
+    <div>🏁 F1 Dashboard</div>
+    <div><a href="{{ url_for('main.profile') }}">👤 Profile</a></div>
+  </div>
 
-  <!-- Link to Profile -->
-  <p><a href="{{ url_for('main.profile') }}">👤 Go to My Profile</a></p>
+  <div class="container">
+    <h1>🏁 F1 Dashboard</h1>
 
-  <!-- Standings Chart -->
-  {% if chart_path %}
-    <img src="{{ chart_path }}" alt="Standings Chart" width="600">
-  {% else %}
-    <p>No chart available.</p>
-  {% endif %}
+    <!-- Standings Chart -->
+    <div class="standings-chart">
+      {% if chart_path %}
+        <img src="{{ chart_path }}" alt="Standings Chart" width="600">
+      {% else %}
+        <p>No chart available.</p>
+      {% endif %}
+    </div>
 
-  <!-- Driver List -->
-  <h2>Top 5 Drivers</h2>
-  <ul>
-    {% for driver in standings[:5] %}
-      <li>{{ driver.driver.name }} — {{ driver.points }} pts</li>
+    <!-- Driver List -->
+    <h2>Top 5 Drivers</h2>
+    <ul>
+      {% for driver in standings[:5] %}
+        <li>{{ driver.driver.name }} — {{ driver.points }} pts</li>
+      {% else %}
+        <li>No driver data found.</li>
+      {% endfor %}
+    </ul>
+
+    <!-- Next Race Info -->
+    {% if next_race %}
+      <div class="next-race">
+        <h2>Next Race</h2>
+        <p>
+          <strong>{{ next_race.race.raceName }}</strong><br>
+          {{ next_race.race.date }} — {{ next_race.race.circuit.location.locality }}
+        </p>
+      </div>
     {% else %}
-      <li>No driver data found.</li>
-    {% endfor %}
-  </ul>
+      <p>No upcoming race data.</p>
+    {% endif %}
+  </div>
 
-  <!-- Next Race Info -->
-  {% if next_race %}
-    <h2>Next Race</h2>
-    <p>
-      <strong>{{ next_race.race.raceName }}</strong><br>
-      {{ next_race.race.date }} — {{ next_race.race.circuit.location.locality }}
-    </p>
-  {% else %}
-    <p>No upcoming race data.</p>
-  {% endif %}
+  <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
 </body>
 </html>
