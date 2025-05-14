@@ -1,159 +1,92 @@
-/* Base Reset */
-* {
-  box-sizing: border-box;
+body {
+  background-color: #0d0d0d;
+  color: white;
+  font-family: 'Helvetica Neue', sans-serif;
   margin: 0;
   padding: 0;
 }
 
-body {
-  background-color: #0d0d0d;
-  color: #ffffff;
-  font-family: 'Helvetica Neue', sans-serif;
-  line-height: 1.6;
-}
-
-/* Navbar */
 .navbar {
   background-color: #e10600;
   padding: 15px 30px;
   display: flex;
   justify-content: space-between;
-  align-items: center;
   font-weight: bold;
 }
 
-.navbar .logo {
-  font-size: 1.2rem;
-}
-
-.navbar .nav-links a {
+.navbar a {
   color: white;
-  margin-left: 20px;
   text-decoration: none;
-  font-size: 1rem;
 }
 
-.navbar .nav-links a:hover {
-  text-decoration: underline;
-}
-
-/* Main Container */
-.dashboard-container {
+.dashboard-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 25px;
+  gap: 20px;
+  padding: 30px;
   max-width: 1200px;
-  margin: 40px auto;
-  padding: 0 20px;
+  margin: auto;
 }
 
-/* Card Layout */
 .card {
   background-color: #1a1a1a;
-  padding: 20px;
   border-radius: 10px;
-  box-shadow: 0 2px 8px rgba(255, 255, 255, 0.05);
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(255, 255, 255, 0.1);
 }
 
 .card h2 {
-  font-size: 1.3rem;
+  margin-top: 0;
   color: #ff4d4d;
-  margin-bottom: 15px;
+  text-align: center;
 }
 
-/* Team Card Special Layout */
-.team-card .team-logo-name {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  margin-bottom: 10px;
-}
-
-.team-logo {
-  width: 50px;
-  height: 50px;
-  object-fit: contain;
-}
-
-
-.team-name {
-  font-size: 1.5rem;
-  font-weight: bold;
-  color: #ffffff;
-}
-
-.team-points {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 10px;
-}
-
-.team-points span {
-  font-size: 1rem;
-}
-
-.points-box {
-  background-color: #333;
-  padding: 8px 16px;
-  border-radius: 8px;
-  font-weight: bold;
-  font-size: 1.2rem;
-}
-
-/* Race Table */
-.races-table {
-  width: 100%;
-  border-collapse: collapse;
-  color: #fff;
-}
-
-.races-table th, .races-table td {
-  text-align: left;
-  padding: 8px;
-}
-
-.races-table tr:nth-child(even) {
-  background-color: #2a2a2a;
-}
-
-/* Progress Bar */
-.progress-bar {
-  background-color: #333;
-  border-radius: 5px;
-  height: 20px;
-  margin-top: 8px;
-  overflow: hidden;
-}
-
-.progress-fill {
-  height: 100%;
-  background-color: #e10600;
-  width: 0%;
-  transition: width 0.5s ease-in-out;
-}
-
-/* Driver List */
 .card ul {
-  list-style-type: none;
-  padding-left: 0;
+  list-style: none;
+  padding: 0;
 }
 
 .card li {
-  background-color: #292929;
+  background-color: #2a2a2a;
   padding: 10px;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
   border-radius: 6px;
 }
 
-/* Responsive Adjustments */
-@media (max-width: 768px) {
-  .navbar {
-    flex-direction: column;
-    align-items: flex-start;
-  }
+.full-width {
+  grid-column: 1 / -1;
+}
 
-  .navbar .nav-links {
-    margin-top: 10px;
-  }
+.team-card .team-info {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-top: 10px;
+}
+
+.team-card img {
+  width: 60px;
+  height: 60px;
+  object-fit: contain;
+  background-color: white;
+  border-radius: 50%;
+  padding: 5px;
+}
+
+.team-card .team-points {
+  margin-top: 10px;
+  font-size: 14px;
+}
+
+.team-card .points-box {
+  margin-top: 5px;
+  font-size: 28px;
+  font-weight: bold;
+  color: #00ffcc;
+}
+
+canvas {
+  background-color: #0d0d0d;
+  border-radius: 6px;
+  margin-top: 15px;
 }
