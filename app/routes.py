@@ -195,6 +195,7 @@ def forgot_password():
 
 # ---------- Edit Profile ----------
 @main.route('/edit-profile', methods=['GET', 'POST'])
+@csrf.exempt
 def edit_profile():
     if 'user_id' not in session:
         return redirect(url_for('main.login'))
@@ -221,9 +222,11 @@ def edit_profile():
         db.session.commit()
         flash('Profile updated successfully.', 'success')
         return redirect(url_for('main.profile'))
-
-    return render_template('edit_profile.html', user=user)
-
+    teams = fetch_teams()
+    drivers_by_team=get_drivers_by_team()
+    print(user.favorite_team,user.favorite_driver)
+    return render_template('edit_profile.html', user=user,teams=teams, drivers_by_team=drivers_by_team)
+    
 # ---------- Current User Profile ----------
 @main.route('/profile', methods=['GET', 'POST'])
 @login_required
