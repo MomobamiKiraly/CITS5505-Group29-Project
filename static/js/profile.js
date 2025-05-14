@@ -1,4 +1,6 @@
-document.addEventListener("DOMContentLoaded", function () { 
+document.addEventListener("DOMContentLoaded", function () {
+    showSection('blog');  // default
+
     const checkbox = document.getElementById("is_public");
     if (checkbox) {
         checkbox.addEventListener("change", function () {
@@ -6,3 +8,22 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 });
+
+function showSection(sectionId) {
+    // Hide all sections
+    document.querySelectorAll('.section-tab').forEach(sec => {
+        sec.classList.remove('active');
+    });
+
+    // Show selected section
+    const selected = document.getElementById(sectionId);
+    if (selected) selected.classList.add('active');
+
+    // Update button state
+    document.querySelectorAll('.toggle-btn').forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.getAttribute('onclick').includes(sectionId)) {
+            btn.classList.add('active');
+        }
+    });
+}
