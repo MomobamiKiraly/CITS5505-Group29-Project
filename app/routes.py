@@ -8,7 +8,7 @@ from werkzeug.utils import secure_filename
 from sqlalchemy import or_
 from app.forms import LoginForm
 from app.models import User, Prediction, BlogPost, Friendship
-from app import db,csr
+from app import db,csrf
 import matplotlib
 matplotlib.use('Agg')  # Use non-GUI backend to avoid Tkinter issues
 import matplotlib.pyplot as plt
