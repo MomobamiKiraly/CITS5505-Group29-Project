@@ -229,6 +229,7 @@ def edit_profile():
     
 # ---------- Current User Profile ----------
 @main.route('/profile', methods=['GET', 'POST'])
+@csrf.exempt
 @login_required
 def profile():
     user = User.query.get_or_404(session['user_id'])
@@ -262,7 +263,6 @@ def profile():
         posts=posts,
         is_following=None  # Not relevant for self-profile
     )
-
 # ---------- Any User Profile + Blog ----------
 @main.route('/profile/<int:user_id>', methods=['GET', 'POST'])
 @login_required
