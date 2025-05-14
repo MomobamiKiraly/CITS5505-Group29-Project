@@ -382,31 +382,15 @@ def ask():
 @csrf.exempt
 def upload():
 
-    # --- Fetch Driver-Team Mapping ---
-    ergast_url = "https://ergast.com/api/f1/current/driverStandings.json"
-    drivers_by_team = {}
-
-    try:
-        response = requests.get(ergast_url)
-        data = response.json()
-        standings = data['MRData']['StandingsTable']['StandingsLists'][0]['DriverStandings']
-        for driver_info in standings:
-            driver = driver_info['Driver']
-            team = driver_info['Constructors'][0]['name']
-            driver_name = f"{driver['givenName']} {driver['familyName']}"
-            drivers_by_team.setdefault(team, []).append({"name": driver_name})
-    except (KeyError, IndexError, requests.exceptions.RequestException):
+     # --- Fetch API Data ---
+    drivers_by_team = get_drivers_by_team()
+    if drivers_by_team is None:
         flash("Failed to fetch driver/team data from the API.", "danger")
         drivers_by_team = {}
 
-    # --- Fetch Next Race Name ---
-    race_name = "Upcoming Race"
-    try:
-        next_race_url = "http://api.jolpi.ca/ergast/f1/current/next.json"
-        race_response = requests.get(next_race_url)
-        race_data = race_response.json()
-        race_name = race_data['MRData']['RaceTable']['Races'][0]['raceName']
-    except (KeyError, IndexError, requests.exceptions.RequestException):
+    race_name = get_next_race_name()
+    if race_name is None:
+        race_name = "Upcoming Race"
         flash("Could not retrieve race name.", "warning")
 
     # --- Handle Form Submission ---
@@ -434,6 +418,7 @@ def upload():
 
     # --- Render Form ---
     return render_template('upload.html', drivers_by_team=drivers_by_team, race_name=race_name)
+
 
 
 # ---------- DeepSeek Chat API ----------
