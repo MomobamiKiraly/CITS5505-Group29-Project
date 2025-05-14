@@ -8,7 +8,7 @@ from werkzeug.utils import secure_filename
 from sqlalchemy import or_
 from app.forms import LoginForm
 from app.models import User, Prediction, BlogPost, Friendship
-from app import db
+from app import db,csrf
 import matplotlib
 matplotlib.use('Agg')  # Use non-GUI backend to avoid Tkinter issues
 import matplotlib.pyplot as plt
@@ -390,44 +390,63 @@ def ask():
 
 # ---------- Upload (Prediction?) ----------
 @main.route('/upload', methods=['GET', 'POST'])
+@login_required
+@csrf.exempt
 def upload():
-    teams = [
-        {"name": "Ferrari", "image_url": "..."},
-        {"name": "Red Bull", "image_url": "..."},
-        {"name": "Mercedes", "image_url": "..."},
-        {"name": "McLaren", "image_url": "..."}
-    ]
 
-    drivers_by_team = {
-        "Ferrari": [...],
-        "Red Bull": [...],
-        "Mercedes": [...],
-        "McLaren": [...]
-    }
+    # --- Fetch Driver-Team Mapping ---
+    ergast_url = "https://ergast.com/api/f1/current/driverStandings.json"
+    drivers_by_team = {}
 
+    try:
+        response = requests.get(ergast_url)
+        data = response.json()
+        standings = data['MRData']['StandingsTable']['StandingsLists'][0]['DriverStandings']
+        for driver_info in standings:
+            driver = driver_info['Driver']
+            team = driver_info['Constructors'][0]['name']
+            driver_name = f"{driver['givenName']} {driver['familyName']}"
+            drivers_by_team.setdefault(team, []).append({"name": driver_name})
+    except (KeyError, IndexError, requests.exceptions.RequestException):
+        flash("Failed to fetch driver/team data from the API.", "danger")
+        drivers_by_team = {}
+
+    # --- Fetch Next Race Name ---
+    race_name = "Upcoming Race"
+    try:
+        next_race_url = "http://api.jolpi.ca/ergast/f1/current/next.json"
+        race_response = requests.get(next_race_url)
+        race_data = race_response.json()
+        race_name = race_data['MRData']['RaceTable']['Races'][0]['raceName']
+    except (KeyError, IndexError, requests.exceptions.RequestException):
+        flash("Could not retrieve race name.", "warning")
+
+    # --- Handle Form Submission ---
     if request.method == 'POST':
-        user = User(
-            full_name=request.form['full_name'],
-            age=request.form['age'],
-            team=request.form['team'],
-            driver=request.form['driver']
-        )
-        db.session.add(user)
+        predicted_winner = request.form['predicted_winner']
+        fastest_lap = request.form['fastest_lap']
+
+        existing_prediction = Prediction.query.filter_by(user_id=current_user.id, race_name=race_name).first()
+
+        if existing_prediction:
+            existing_prediction.predicted_winner = predicted_winner
+            existing_prediction.fastest_lap = fastest_lap
+        else:
+            new_prediction = Prediction(
+                user_id=current_user.id,
+                predicted_winner=predicted_winner,
+                fastest_lap=fastest_lap,
+                race_name=race_name
+            )
+            db.session.add(new_prediction)
+
         db.session.commit()
+        flash('Prediction saved successfully!', 'success')
+        return redirect(url_for('main.profile'))
 
-        prediction = Prediction(
-            user_id=user.id,
-            race_winner=request.form['race_winner'],
-            top_3=request.form['top_3'],
-            fastest_lap=request.form['fastest_lap']
-        )
-        db.session.add(prediction)
-        db.session.commit()
+    # --- Render Form ---
+    return render_template('upload.html', drivers_by_team=drivers_by_team, race_name=race_name)
 
-        flash('Data successfully uploaded!', 'success')
-        return redirect(url_for('main.upload'))
-
-    return render_template('upload.html', teams=teams, drivers_by_team=drivers_by_team)
 
 # ---------- DeepSeek Chat API ----------
 @main.route("/chat", methods=["POST"])
