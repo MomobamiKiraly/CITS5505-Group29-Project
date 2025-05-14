@@ -61,15 +61,18 @@ h2 {
 }
 
 .alert-success {
-    background-color: rgba(40, 167, 69, 0.85); /* green */
+    background-color: rgba(40, 167, 69, 0.85);
+    /* green */
 }
 
 .alert-danger {
-    background-color: rgba(220, 53, 69, 0.85); /* red */
+    background-color: rgba(220, 53, 69, 0.85);
+    /* red */
 }
 
 .alert-info {
-    background-color: rgba(23, 162, 184, 0.85); /* blue */
+    background-color: rgba(23, 162, 184, 0.85);
+    /* blue */
 }
 
 .register-link,
@@ -89,4 +92,61 @@ h2 {
 .register-link a:hover,
 .form-footer a:hover {
     text-decoration: underline;
+}
+
+.step {
+    display: none;
+}
+
+.step.active {
+    display: block;
+}
+
+.team,
+.driver {
+    cursor: pointer;
+    padding: 10px;
+    border-radius: 10px;
+    border: 2px solid transparent;
+    transition: 0.3s;
+}
+
+.team:hover,
+.driver:hover {
+    border-color: #e10600;
+}
+
+.selected {
+    border-color: #e10600 !important;
+}
+
+.team-grid,
+.driver-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 15px;
+    margin-top: 10px;
+    justify-items: center;
+}
+
+.team,
+.driver img {
+    width: 100px;
+    height: auto;
+    object-fit: contain;
+}
+
+.driver {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.team {
+    background-color: #f0f0f0;
+}
+
+.driver.selected {
+    border: 2px solid #e10600;
+    border-radius: 10px;
 }
