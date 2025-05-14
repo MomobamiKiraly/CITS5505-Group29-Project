@@ -1,59 +1,159 @@
+/* Base Reset */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
 body {
-    background-color: #0d0d0d;
-    color: white;
-    font-family: 'Helvetica Neue', sans-serif;
-    margin: 0;
-    padding: 0;
-  }
-  
+  background-color: #0d0d0d;
+  color: #ffffff;
+  font-family: 'Helvetica Neue', sans-serif;
+  line-height: 1.6;
+}
+
+/* Navbar */
+.navbar {
+  background-color: #e10600;
+  padding: 15px 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: bold;
+}
+
+.navbar .logo {
+  font-size: 1.2rem;
+}
+
+.navbar .nav-links a {
+  color: white;
+  margin-left: 20px;
+  text-decoration: none;
+  font-size: 1rem;
+}
+
+.navbar .nav-links a:hover {
+  text-decoration: underline;
+}
+
+/* Main Container */
+.dashboard-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 25px;
+  max-width: 1200px;
+  margin: 40px auto;
+  padding: 0 20px;
+}
+
+/* Card Layout */
+.card {
+  background-color: #1a1a1a;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(255, 255, 255, 0.05);
+}
+
+.card h2 {
+  font-size: 1.3rem;
+  color: #ff4d4d;
+  margin-bottom: 15px;
+}
+
+/* Team Card Special Layout */
+.team-card .team-logo-name {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 10px;
+}
+
+.team-logo {
+  width: 50px;
+  height: 50px;
+  object-fit: contain;
+}
+
+
+.team-name {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #ffffff;
+}
+
+.team-points {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 10px;
+}
+
+.team-points span {
+  font-size: 1rem;
+}
+
+.points-box {
+  background-color: #333;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: bold;
+  font-size: 1.2rem;
+}
+
+/* Race Table */
+.races-table {
+  width: 100%;
+  border-collapse: collapse;
+  color: #fff;
+}
+
+.races-table th, .races-table td {
+  text-align: left;
+  padding: 8px;
+}
+
+.races-table tr:nth-child(even) {
+  background-color: #2a2a2a;
+}
+
+/* Progress Bar */
+.progress-bar {
+  background-color: #333;
+  border-radius: 5px;
+  height: 20px;
+  margin-top: 8px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background-color: #e10600;
+  width: 0%;
+  transition: width 0.5s ease-in-out;
+}
+
+/* Driver List */
+.card ul {
+  list-style-type: none;
+  padding-left: 0;
+}
+
+.card li {
+  background-color: #292929;
+  padding: 10px;
+  margin-bottom: 8px;
+  border-radius: 6px;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
   .navbar {
-    background-color: #e10600;
-    padding: 15px 30px;
-    display: flex;
-    justify-content: space-between;
-    font-weight: bold;
+    flex-direction: column;
+    align-items: flex-start;
   }
-  
-  .navbar a {
-    color: white;
-    text-decoration: none;
+
+  .navbar .nav-links {
+    margin-top: 10px;
   }
-  
-  .container {
-    padding: 40px;
-    max-width: 800px;
-    margin: auto;
-  }
-  
-  h1, h2 {
-    text-align: center;
-  }
-  
-  ul {
-    list-style-type: none;
-    padding: 0;
-  }
-  
-  li {
-    background: #1a1a1a;
-    margin: 8px 0;
-    padding: 10px;
-    border-radius: 6px;
-  }
-  
-  .standings-chart {
-    display: flex;
-    justify-content: center;
-    margin: 20px 0;
-  }
-  
-  .next-race {
-    background: #1a1a1a;
-    padding: 15px;
-    border-radius: 6px;
-    text-align: center;
-  }
-  
-  a {
-    color: #ff4d4d;
-  }
+}
