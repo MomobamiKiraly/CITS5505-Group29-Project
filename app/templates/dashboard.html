@@ -2,41 +2,104 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>🏁 F1 Dashboard</title>
+  <title>🏁 F1 Friends | Dashboard</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
 </head>
 <body>
+  <!-- Navbar -->
   <div class="navbar">
-    <div>🏁 F1 Dashboard</div>
-    <a href="{{ url_for('main.chatbot') }}">🤖 AI Chatbot</a>
-    <div><a href="{{ url_for('main.profile') }}">👤 Profile</a></div>
+    <div class="logo">🏁 F1 Dashboard</div>
+    <div class="nav-links">
+      <a href="{{ url_for('main.chatbot') }}">🤖 AI Chatbot</a>
+      <a href="{{ url_for('main.profile') }}">👤 Profile</a>
+    </div>
   </div>
 
-  <div class="container">
-    <h1>🏁 F1 Dashboard</h1>
-
-    <!-- Standings Chart -->
-    <div class="standings-chart">
-      {% if chart_path %}
-        <img src="{{ chart_path }}" alt="Standings Chart" width="600">
-      {% else %}
-        <p>No chart available.</p>
-      {% endif %}
+  <!-- Dashboard Container -->
+  <div class="dashboard-container">
+    <!-- Team Card (You can replace this with user's favorite team info if needed) -->
+    <div class="card team-card">
+      <h2>Your F1 Team</h2>
+      <div class="team-logo-name">
+        <img src="{{ url_for('static', filename='images/ferrari-logo.png') }}" alt="Team Logo" class="team-logo">
+        <div class="team-name">{{ current_user.favorite_team or "No team selected" }}</div>
+      </div>
+      <div class="team-points">
+        <span>Track Your Team's Points</span>
+        <div class="points-box">—</div>
+      </div>
     </div>
 
-    <!-- Driver List -->
-    <h2>Top 5 Drivers</h2>
-    <ul>
-      {% for driver in standings[:5] %}
-        <li>{{ driver.driver.name }} — {{ driver.points }} pts</li>
-      {% else %}
-        <li>No driver data found.</li>
-      {% endfor %}
-    </ul>
+    <!-- Standings -->
+    <div class="card">
+      <h2>Top 5 Drivers</h2>
+      <ul>
+        {% for driver in standings[:5] %}
+          <li>{{ driver.driver.name }} — {{ driver.points }} pts</li>
+        {% else %}
+          <li>No driver data found.</li>
+        {% endfor %}
+      </ul>
+    </div>
 
-    <!-- Next Race Info -->
+    <!-- Standings Chart -->
+<div class="card">
+  <h2>Driver Standings Chart</h2>
+  <canvas id="standingsChart"></canvas>
+</div>
+
+<!-- Add Chart.js via CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  const ctx = document.getElementById('standingsChart').getContext('2d');
+
+  const driverNames = {{ standings[:5]|map(attribute='driver.name')|list|tojson }};
+  const driverPoints = {{ standings[:5]|map(attribute='points')|list|tojson }};
+
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: driverNames,
+      datasets: [{
+        label: 'Points',
+        data: driverPoints,
+        backgroundColor: [
+          'rgba(255, 99, 132, 0.8)',
+          'rgba(255, 159, 64, 0.8)',
+          'rgba(54, 162, 235, 0.8)',
+          'rgba(75, 192, 192, 0.8)',
+          'rgba(153, 102, 255, 0.8)'
+        ],
+        borderWidth: 1
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { display: false },
+        title: {
+          display: true,
+          text: 'Top 5 F1 Drivers — 2025 Standings'
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: { color: 'white' },
+          grid: { color: 'rgba(255,255,255,0.1)' }
+        },
+        x: {
+          ticks: { color: 'white' },
+          grid: { color: 'rgba(255,255,255,0.1)' }
+        }
+      }
+    }
+  });
+</script>
+
+    <!-- Next Race -->
     {% if next_race %}
-      <div class="next-race">
+      <div class="card">
         <h2>Next Race</h2>
         <p>
           <strong>{{ next_race.race.raceName }}</strong><br>
@@ -44,7 +107,10 @@
         </p>
       </div>
     {% else %}
-      <p>No upcoming race data.</p>
+      <div class="card">
+        <h2>Next Race</h2>
+        <p>No upcoming race data available.</p>
+      </div>
     {% endif %}
   </div>
 
