@@ -4,130 +4,117 @@
   <meta charset="UTF-8">
   <title>🏁 F1 Friends | Dashboard</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
-<body>
-  <!-- Navbar -->
-  <div class="navbar">
-    <div class="logo">🏁 F1 Dashboard</div>
-    <div class="nav-links">
-      <a href="{{ url_for('main.chatbot') }}">🤖 AI Chatbot</a>
-      <a href="{{ url_for('main.profile') }}">👤 Profile</a>
-    </div>
-  </div>
+<body class="bg-dark text-light" style="padding-top: 70px;">
 
-  <!-- Dashboard Container -->
-  <div class="dashboard-container">
-    <!-- Team Card (You can replace this with user's favorite team info if needed) -->
-    <div class="card team-card">
-      <h2>Your F1 Team</h2>
-      {% if favorite_team and team_info %}
-      <div class="team-logo-name">
-        <img src="{{ team_logo }}" alt="{{ favorite_team }} Logo" class="team-logo">
-        <div class="team-name">{{ favorite_team }}</div>
+  
+  <nav class="navbar navbar-expand-lg navbar-dark bg-danger fixed-top">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="{{ url_for('main.dashboard') }}">🏁 F1 Friends</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('main.chatbot') }}">Chatbot</a></li>
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('main.profile') }}">Profile</a></li>
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('main.logout') }}">Logout</a></li>
+        </ul>
       </div>
-      <div class="team-points">
-        <span>Track Your Team's Performance</span>
-        <div style="display: flex; gap: 2rem;">
-          <p><strong>Position:</strong> {{ team_info.position }}</p>
-          <p><strong>Points:</strong> {{ team_info.points }}</p>
-          <p><strong>Wins:</strong> {{ team_info.wins }}</p>
+    </div>
+  </nav>
+
+  
+  <div class="container mt-4">
+    <div class="row g-4">
+
+      <!-- Team Card -->
+      <div class="col-md-6 col-lg-4">
+        <div class="card team-card h-100">
+          <div class="card-body">
+            <h2 class="card-title text-center">Your F1 Team</h2>
+            {% if favorite_team and team_info %}
+            <div class="text-center">
+              <img src="{{ team_logo }}" alt="{{ favorite_team }} Logo" class="team-logo mb-2">
+              <h5 class="team-name">{{ favorite_team }}</h5>
+              <p class="mt-3">Track Your Team's Performance</p>
+              <ul class="list-unstyled">
+                <li><strong>Position:</strong> {{ team_info.position }}</li>
+                <li><strong>Points:</strong> {{ team_info.points }}</li>
+                <li><strong>Wins:</strong> {{ team_info.wins }}</li>
+              </ul>
+            </div>
+            {% else %}
+            <p class="text-center">No favorite team selected.</p>
+            {% endif %}
+          </div>
         </div>
       </div>
-      {% else %}
-      <div class="team-name">No favorite team selected.</div>
-      {% endif %}
-    </div>
 
-    <!-- Standings -->
-    <div class="card">
-      <h2>Top 5 Drivers</h2>
-      <ul>
-        {% for driver in standings[:5] %}
-          <li>{{ driver.driver.name }} — {{ driver.points }} pts</li>
-        {% else %}
-          <li>No driver data found.</li>
-        {% endfor %}
-      </ul>
-    </div>
-
-    <!-- Standings Chart -->
-<div class="card">
-  <h2>Driver Standings Chart</h2>
-  <canvas id="standingsChart"></canvas>
-</div>
-
-<!-- Add Chart.js via CDN -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-  const ctx = document.getElementById('standingsChart').getContext('2d');
-
-  const driverNames = {{ standings[:5]|map(attribute='driver.name')|list|tojson }};
-  const driverPoints = {{ standings[:5]|map(attribute='points')|list|tojson }};
-
-  new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels: driverNames,
-      datasets: [{
-        label: 'Points',
-        data: driverPoints,
-        backgroundColor: [
-          'rgba(255, 99, 132, 0.8)',
-          'rgba(255, 159, 64, 0.8)',
-          'rgba(54, 162, 235, 0.8)',
-          'rgba(75, 192, 192, 0.8)',
-          'rgba(153, 102, 255, 0.8)'
-        ],
-        borderWidth: 1
-      }]
-    },
-    options: {
-      responsive: true,
-      plugins: {
-        legend: { display: false },
-        title: {
-          display: true,
-          text: 'Top 5 F1 Drivers — 2025 Standings'
-        }
-      },
-      scales: {
-        y: {
-          beginAtZero: true,
-          ticks: { color: 'white' },
-          grid: { color: 'rgba(255,255,255,0.1)' }
-        },
-        x: {
-          ticks: { color: 'white' },
-          grid: { color: 'rgba(255,255,255,0.1)' }
-        }
-      }
-    }
-  });
-</script>
-
-<!-- Static Chart Image (Matplotlib) -->
-<div class="card">
-  <h2>Static Standings Chart</h2>
-  <img src="{{ url_for('static', filename='charts/standings.png') }}" alt="Static Standings Chart" class="standings-img">
-</div>
-
-    <!-- Next Race -->
-    {% if next_race %}
-      <div class="card">
-        <h2>Next Race</h2>
-        <p>
-          <strong>{{ next_race.race.raceName }}</strong><br>
-          {{ next_race.race.date }} — {{ next_race.race.circuit.location.locality }}
-        </p>
+      <!-- Top 5 Drivers -->
+      <div class="col-md-6 col-lg-4">
+        <div class="card h-100">
+          <div class="card-body">
+            <h2 class="card-title text-center">Top 5 Drivers</h2>
+            <ul class="list-group list-group-flush">
+              {% for driver in standings[:5] %}
+              <li class="list-group-item bg-dark text-light">{{ driver.driver.name }} — {{ driver.points }} pts</li>
+              {% else %}
+              <li class="list-group-item bg-dark text-muted">No driver data found.</li>
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
       </div>
-    {% else %}
-      <div class="card">
-        <h2>Next Race</h2>
-        <p>No upcoming race data available.</p>
+
+      <!-- Chart.js Chart -->
+      <div class="col-md-6 col-lg-4">
+        <div class="card h-100">
+          <div class="card-body">
+            <h2 class="card-title text-center">Driver Standings Chart</h2>
+            <canvas id="standingsChart"></canvas>
+          </div>
+        </div>
       </div>
-    {% endif %}
+
+      <!-- Static Chart Image -->
+      <div class="col-md-6 col-lg-6">
+        <div class="card h-100">
+          <div class="card-body text-center">
+            <h2 class="card-title">Static Standings Chart</h2>
+            <img src="{{ url_for('static', filename='charts/standings.png') }}" alt="Static Chart" class="standings-img">
+          </div>
+        </div>
+      </div>
+
+      <!-- Next Race -->
+      <div class="col-md-6 col-lg-6">
+        <div class="card h-100">
+          <div class="card-body">
+            <h2 class="card-title text-center">Next Race</h2>
+            {% if next_race %}
+            <p class="text-center">
+              <strong>{{ next_race.race.raceName }}</strong><br>
+              {{ next_race.race.date }} — {{ next_race.race.circuit.location.locality }}
+            </p>
+            {% else %}
+            <p class="text-center text-muted">No upcoming race data available.</p>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+    </div>
   </div>
 
+  <!-- Scripts -->
+  <script>
+  const driverNames = {{ standings[:5]|map(attribute='driver.name')|list|tojson | safe }};
+  const driverPoints = {{ standings[:5]|map(attribute='points')|list|tojson | safe }};
+  </script>
   <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </body>
 </html>

@@ -1,199 +1,70 @@
 body {
-    font-family: Arial, sans-serif;
-    background-color: #f4f4f4;
-    margin: 0;
-    padding: 0;
+  background-color: #0d0d0d;
+  color: white;
+  font-family: 'Segoe UI', sans-serif;
 }
 
-.navbar {
-    background-color: #e10600;
-    padding: 12px 24px;
-    color: white;
+.navbar.bg-danger {
+  background-color: #e10600 !important;
 }
 
-.nav-links a {
-    color: white;
-    text-decoration: none;
-    margin-right: 20px;
-    font-weight: bold;
-}
-
-.container {
-    max-width: 900px;
-    margin: 30px auto;
-    background: white;
-    padding: 30px;
-    border-radius: 10px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
-}
-
-h1 {
-    margin-bottom: 25px;
-    color: #333;
-}
-
-.friend-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-
-.friend-list li {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: flex-start;
-    padding: 12px 0;
-    border-bottom: 1px solid #ddd;
-    gap: 10px;
-}
-
-.username {
-    font-weight: bold;
-    color: #007bff;
-    text-decoration: none;
-    position: relative;
-}
-
-.email {
-    font-size: 0.9em;
-    color: #555;
-    margin-left: 10px;
-}
-
-.badge-friend {
-    background-color: #28a745;
-    color: white;
-    padding: 4px 8px;
-    border-radius: 5px;
-    font-size: 0.8em;
-    margin-left: 10px;
-}
-
-.btn-chat {
-    background-color: #0069d9;
-    color: white;
-    border: none;
-    padding: 6px 12px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 0.9em;
-    transition: background-color 0.2s;
-}
-
-.btn-chat:hover {
-    background-color: #0053b3;
-}
-
-.btn-unfollow {
-    background-color: #dc3545;
-    color: white;
-    text-decoration: none;
-    padding: 6px 12px;
-    border-radius: 4px;
-    font-size: 0.9em;
-    transition: background-color 0.2s;
-}
-
-.btn-unfollow:hover {
-    background-color: #c82333;
-}
-
-.empty {
-    color: #777;
-    font-style: italic;
-}
-
-.search-link {
-    margin-top: 20px;
-    display: block;
-    font-style: italic;
-    color: #555;
-}
-
-.search-link a {
-    color: #007bff;
-    text-decoration: underline;
-}
-
-/* Red dot for unread messages */
 .unread-dot {
-    color: red;
-    font-size: 1.2em;
-    margin-left: 4px;
-    vertical-align: middle;
+  color: red;
+  font-size: 1.2em;
+  margin-left: 4px;
+  vertical-align: middle;
 }
 
 /* Modal styles */
 .modal {
-    position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background-color: rgba(0, 0, 0, 0.4);
-    display: none;
-    align-items: center;
-    justify-content: center;
-    z-index: 999;
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: rgba(0, 0, 0, 0.4);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
 }
 
 .modal-content {
-    background-color: white;
-    padding: 25px;
-    width: 400px;
-    border-radius: 10px;
-    position: relative;
+  background-color: white;
+  padding: 25px;
+  width: 400px;
+  border-radius: 10px;
+  position: relative;
 }
 
 .modal-content .close {
-    position: absolute;
-    top: 10px;
-    right: 15px;
-    font-size: 22px;
-    font-weight: bold;
-    color: #333;
-    cursor: pointer;
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  font-size: 22px;
+  font-weight: bold;
+  color: #333;
+  cursor: pointer;
 }
 
 .chat-body {
-    height: 180px;
-    overflow-y: auto;
-    margin-top: 15px;
-    margin-bottom: 15px;
-    padding: 10px;
-    background-color: #f9f9f9;
-    border: 1px solid #ccc;
-    border-radius: 6px;
+  height: 200px;
+  overflow-y: auto;
+  margin-top: 15px;
+  margin-bottom: 15px;
+  padding: 10px;
+  background-color: #f9f9f9;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  color: #000;
 }
 
 .chat-footer {
-    display: flex;
-    gap: 10px;
+  display: flex;
+  gap: 10px;
 }
 
-.chat-footer input {
-    flex: 1;
-    padding: 10px;
-    border-radius: 6px;
-    border: 1px solid #ccc;
+#chatInput {
+  flex: 1;
 }
 
 #sendBtn {
-    padding: 10px 16px;
-    background-color: #e10600;
-    border: none;
-    border-radius: 6px;
-    color: white;
-    font-weight: bold;
-    cursor: pointer;
-    transition: background-color 0.2s;
-}
-
-#sendBtn:hover {
-    background-color: #b80500;
-}
-
-.new-message {
-    color: red;
-    font-weight: bold;
-    margin-left: 8px;
-    font-size: 0.85em;
+  white-space: nowrap;
 }

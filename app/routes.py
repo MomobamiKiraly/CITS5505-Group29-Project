@@ -20,8 +20,10 @@ main = Blueprint('main', __name__)
 
 # ---------- Home ----------
 @main.route('/')
-def home():
-    return redirect(url_for('main.login'))
+def index():
+    if current_user.is_authenticated:
+        return redirect(url_for('main.dashboard'))
+    return render_template('index.html')
 
 # ---------- Friend List ----------
 @main.route('/friends')
