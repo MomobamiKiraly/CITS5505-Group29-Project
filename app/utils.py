@@ -1,6 +1,5 @@
-# app/api_utils.py
-
 import requests
+from datetime import datetime, timezone
 
 ERGAST_BASE_URL = "https://ergast.com/api/f1"
 
@@ -157,15 +156,50 @@ def get_drivers_by_team():
 
 
 def get_next_race_name():
-    """Fetch the name of the next scheduled race."""
+    """Fetch the next 5 scheduled races from the 2025 F1 season using Jolpica."""
     try:
-        next_race_url = "http://ergast.com/api/f1/current/next.json"
-        race_response = requests.get(next_race_url)
-        race_response.raise_for_status()
-        race_data = race_response.json()
-        return race_data['MRData']['RaceTable']['Races'][0]['raceName']
-    except (KeyError, IndexError, requests.exceptions.RequestException):
-        return None
+        url = "https://api.jolpi.ca/ergast/f1/2025.json"
+        response = requests.get(url)
+        response.raise_for_status()
+        data = response.json()
+        print("API response received.")
+
+        races = data.get('MRData', {}).get('RaceTable', {}).get('Races', [])
+        print(f"Total races fetched: {len(races)}")
+
+        now_utc = datetime.now(timezone.utc)
+        upcoming = []
+
+        for race in races:
+            race_date_str = race.get("date")
+            race_time_str = race.get("time", "00:00:00Z").replace("Z", "")
+            full_datetime_str = f"{race_date_str}T{race_time_str}"
+
+            try:
+                race_datetime = datetime.strptime(full_datetime_str, "%Y-%m-%dT%H:%M:%S")
+                race_datetime = race_datetime.replace(tzinfo=timezone.utc)
+            except ValueError as ve:
+                print(f"Date parsing error for race {race.get('raceName')}: {ve}")
+                continue
+
+            if race_datetime >= now_utc:
+                upcoming.append({
+                    "raceName": race.get("raceName"),
+                    "circuit": race.get("Circuit", {}).get("circuitName"),
+                    "location": f"{race.get('Circuit', {}).get('Location', {}).get('locality')}, {race.get('Circuit', {}).get('Location', {}).get('country')}",
+                    "date": race_datetime.strftime("%Y-%m-%d")
+                })
+
+        print(f"Upcoming races found: {len(upcoming)}")
+        return upcoming[:5]
+
+    except requests.exceptions.RequestException as e:
+        print(f"Request error: {e}")
+        return []
+    except Exception as e:
+        print(f"Unexpected error: {e}")
+        return []
+
 
 def get_team_details(constructor_id):
     url = f"http://ergast.com/api/f1/constructors/{constructor_id}.json"
