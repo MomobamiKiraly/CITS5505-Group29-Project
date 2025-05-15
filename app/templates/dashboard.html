@@ -97,6 +97,12 @@
   });
 </script>
 
+<!-- Static Chart Image (Matplotlib) -->
+<div class="card">
+  <h2>Static Standings Chart</h2>
+  <img src="{{ url_for('static', filename='charts/standings.png') }}" alt="Static Standings Chart" class="standings-img">
+</div>
+
     <!-- Next Race -->
     {% if next_race %}
       <div class="card">

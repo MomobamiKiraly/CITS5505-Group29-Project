@@ -48,7 +48,12 @@ def login():
     return render_template('login.html', form=form)
 
 # ---------- Register ----------
-from app.forms import LoginForm, RegisterForm  # 🔄 确保导入 RegisterForm
+from app.forms import RegisterForm  
+from flask import request, render_template, redirect, flash, url_for
+from app.models import User
+from app.forms import LoginForm, RegisterForm
+from app import db
+from app.utils import fetch_teams, get_drivers_by_team
 
 @main.route('/register', methods=['GET', 'POST'])
 def register():
@@ -57,13 +62,7 @@ def register():
     drivers_by_team = get_drivers_by_team()
 
     if form.validate_on_submit():
-        # Get values from regular request.form, not from WTForms
-        favorite_team = request.form.get('favorite_team')
-        favorite_driver = request.form.get('favorite_driver')
-
-        print("Favorite team from request:", favorite_team)
-        print("Favorite driver from request:", favorite_driver)
-
+        
         existing_user = User.query.filter(
             (User.username == form.username.data) | (User.email == form.email.data)
         ).first()
@@ -75,8 +74,8 @@ def register():
         new_user = User(
             username=form.username.data,
             email=form.email.data,
-            favorite_team=favorite_team,
-            favorite_driver=favorite_driver,
+            favorite_team=form.favorite_team.data,
+            favorite_driver=form.favorite_driver.data,
             profile_pic='default.jpg'
         )
         new_user.set_password(form.password.data)
@@ -118,7 +117,7 @@ def generate_standings_chart(standings):
     ax.set_xticks([])
     ax.set_title("F1 Driver Standings")
 
-    # 🔧 改为项目根目录/static/charts/
+    
     chart_dir = os.path.join(os.path.dirname(current_app.root_path), 'static', 'charts')
     os.makedirs(chart_dir, exist_ok=True)
     chart_path = os.path.join(chart_dir, 'standings.png')
@@ -181,51 +180,91 @@ def dashboard():
 
 
 # ---------- Forgot Password ----------
+from app.forms import ForgotPasswordForm
+
 @main.route('/forgot-password', methods=['GET', 'POST'])
 def forgot_password():
-    if request.method == 'POST':
-        email = request.form['email']
+    form = ForgotPasswordForm()
+
+    if form.validate_on_submit():
+        email = form.email.data
         user = User.query.filter_by(email=email).first()
         if user:
             flash('Password reset link would be sent (simulation).', 'info')
         else:
             flash('Email not found.', 'danger')
         return redirect(url_for('main.login'))
-    return render_template('forgot_password.html')
+
+    return render_template('forgot_password.html', form=form)
 
 # ---------- Edit Profile ----------
+from app.forms import EditProfileForm
+from werkzeug.utils import secure_filename
+import os
+
 @main.route('/edit-profile', methods=['GET', 'POST'])
-@csrf.exempt
 def edit_profile():
+    # Ensure the user is logged in
     if 'user_id' not in session:
         return redirect(url_for('main.login'))
 
     user = User.query.get(session['user_id'])
 
-    if request.method == 'POST':
-        user.username = request.form.get('username', user.username)
-        user.email = request.form.get('email', user.email)
-        user.favorite_team = request.form.get('favorite_team')
-        user.favorite_driver = request.form.get('favorite_driver')
-        user.bio = request.form.get('bio')
+    form = EditProfileForm()
 
-        if 'profile_pic' in request.files:
-            file = request.files['profile_pic']
-            if file and file.filename:
-                filename = secure_filename(file.filename)
-                upload_folder = os.path.join(current_app.root_path, 'static', 'profile_pics')
-                os.makedirs(upload_folder, exist_ok=True)
-                filepath = os.path.join(upload_folder, filename)
-                file.save(filepath)
-                user.profile_pic = f'/static/profile_pics/{filename}'
+    # Load team and driver data
+    teams = fetch_teams()  # list of dicts: [{"name": ..., "image_url": ...}, ...]
+    drivers_by_team = get_drivers_by_team()  # dict: {"TeamName": [{"name": ...}, ...]}
+
+    # Populate team choices for the dropdown
+    form.favorite_team.choices = [(team["name"], team["name"]) for team in teams]
+
+    # Determine selected team (use current user's favorite or default to first team)
+    selected_team = user.favorite_team or teams[0]["name"]
+
+    # Populate driver choices based on selected team
+    form.favorite_driver.choices = [
+        (driver["name"], driver["name"]) for driver in drivers_by_team.get(selected_team, [])
+    ]
+
+    # Handle form submission
+    if form.validate_on_submit():
+        user.username = form.username.data
+        user.email = form.email.data
+        user.favorite_team = form.favorite_team.data
+        user.favorite_driver = form.favorite_driver.data
+        user.bio = form.bio.data
+
+        # Process profile picture upload if provided
+        if form.profile_pic.data:
+            file = form.profile_pic.data
+            filename = secure_filename(file.filename)
+            upload_folder = os.path.join(current_app.root_path, 'static', 'profile_pics')
+            os.makedirs(upload_folder, exist_ok=True)
+            filepath = os.path.join(upload_folder, filename)
+            file.save(filepath)
+            user.profile_pic = f'/static/profile_pics/{filename}'
 
         db.session.commit()
         flash('Profile updated successfully.', 'success')
         return redirect(url_for('main.profile'))
-    teams = fetch_teams()
-    drivers_by_team=get_drivers_by_team()
-    print(user.favorite_team,user.favorite_driver)
-    return render_template('edit_profile.html', user=user,teams=teams, drivers_by_team=drivers_by_team)
+
+    # Pre-fill form fields with current user data
+    if request.method == 'GET':
+        form.username.data = user.username
+        form.email.data = user.email
+        form.favorite_team.data = user.favorite_team
+        form.favorite_driver.data = user.favorite_driver
+        form.bio.data = user.bio
+
+    # Render the edit profile page
+    return render_template(
+        'edit_profile.html',
+        form=form,
+        user=user,
+        teams=teams,
+        drivers_by_team=drivers_by_team
+    )
     
 # ---------- Current User Profile ----------
 @main.route('/profile', methods=['GET', 'POST'])
@@ -376,13 +415,14 @@ def ask():
 
     return jsonify({'reply': reply})
 
-# ---------- Upload (Prediction?) ----------
+from app.forms import UploadPredictionForm
+from flask_login import login_required
+from flask_wtf.csrf import CSRFProtect
+
 @main.route('/upload', methods=['GET', 'POST'])
 @login_required
-@csrf.exempt
 def upload():
-
-     # --- Fetch API Data ---
+    # --- Fetch API Data ---
     drivers_by_team = get_drivers_by_team()
     if drivers_by_team is None:
         flash("Failed to fetch driver/team data from the API.", "danger")
@@ -393,10 +433,22 @@ def upload():
         race_name = "Upcoming Race"
         flash("Could not retrieve race name.", "warning")
 
-    # --- Handle Form Submission ---
-    if request.method == 'POST':
-        predicted_winner = request.form['predicted_winner']
-        fastest_lap = request.form['fastest_lap']
+    # --- Prepare Form ---
+    form = UploadPredictionForm()
+
+    # Flatten driver options (e.g., "Verstappen (Red Bull)")
+    all_drivers = [
+        (driver["name"], f'{driver["name"]} ({team})')
+        for team, drivers in drivers_by_team.items()
+        for driver in drivers
+    ]
+    form.predicted_winner.choices = all_drivers
+    form.fastest_lap.choices = all_drivers
+
+    # --- Handle Submission ---
+    if form.validate_on_submit():
+        predicted_winner = form.predicted_winner.data
+        fastest_lap = form.fastest_lap.data
 
         existing_prediction = Prediction.query.filter_by(user_id=current_user.id, race_name=race_name).first()
 
@@ -416,8 +468,13 @@ def upload():
         flash('Prediction saved successfully!', 'success')
         return redirect(url_for('main.profile'))
 
-    # --- Render Form ---
-    return render_template('upload.html', drivers_by_team=drivers_by_team, race_name=race_name)
+    # --- Initial render ---
+    return render_template(
+        'upload.html',
+        form=form,
+        drivers_by_team=drivers_by_team,
+        race_name=race_name
+    )
 
 
 

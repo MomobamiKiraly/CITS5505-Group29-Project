@@ -1,11 +1,9 @@
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html lang="en">
-
 <head>
   <meta charset="UTF-8">
   <title>Register</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
-
 </head>
 
 <body>
@@ -13,9 +11,9 @@
 
     {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
-    {% for category, message in messages %}
-    <div class="alert alert-{{ category }}">{{ message }}</div>
-    {% endfor %}
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }}">{{ message }}</div>
+      {% endfor %}
     {% endif %}
     {% endwith %}
 
@@ -50,11 +48,12 @@
         <h3>Choose Your Favorite Team</h3>
         <div class="team-grid">
           {% for team in teams %}
-          <img src="{{ team.image_url }}" class="team" data-value="{{ team.name }}" onclick="selectTeam(this)">
+            <img src="{{ team.image_url }}" class="team" data-value="{{ team.name }}" onclick="selectTeam(this)">
           {% endfor %}
         </div>
-        {{ form.favorite_team(id="favorite_team") }}
 
+        
+        {{ form.favorite_team(id="favorite_team") }}
 
         <div id="driverSection" style="display: none;">
           <h3>Choose Your Favorite Driver</h3>
@@ -63,19 +62,18 @@
         </div>
 
         <button type="button" class="btn" onclick="prevStep()">Back</button>
-        <button type="submit" class="btn">Register</button>
+        {{ form.submit(class="btn") }}
       </div>
     </form>
 
     <p class="register-link">
-      Already have an account?
-      <a href="{{ url_for('main.login') }}">Login here</a>.
+      Already have an account? <a href="{{ url_for('main.login') }}">Login here</a>.
     </p>
   </div>
+
   <script>
     const driversByTeam = {{ drivers_by_team | tojson }};
   </script>
   <script src="{{ url_for('static', filename='js/register.js') }}"></script>
 </body>
-
 </html>
