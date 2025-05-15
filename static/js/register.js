@@ -1,7 +1,7 @@
 let current = 0;
 const steps = document.querySelectorAll('.step');
-const driversByTeam = {{ drivers_by_team | tojson}};
 
+// Handle multi-step logic
 function nextStep() {
     if (current < steps.length - 1) {
         steps[current].classList.remove('active');
@@ -18,11 +18,21 @@ function prevStep() {
     }
 }
 
+// 🚨 Moved outside selectTeam — runs on load!
+document.querySelector('form').addEventListener('submit', (e) => {
+    console.log("Form submitting...");
+    console.log("teamInput value:", document.getElementById('teamInput').value);
+    console.log("driverInput value:", document.getElementById('driverInput').value);
+});
+
+// Team selection logic
 function selectTeam(el) {
     document.querySelectorAll('.team').forEach(e => e.classList.remove('selected'));
     el.classList.add('selected');
+
     const teamName = el.dataset.value;
-    document.getElementById('teamInput').value = teamName;
+    console.log("Selected team:", teamName);
+    document.getElementById('favorite_team').value = teamName;
 
     document.getElementById('driverSection').style.display = 'block';
     const driverContainer = document.getElementById('driverContainer');
@@ -37,10 +47,12 @@ function selectTeam(el) {
             img.src = driver.image_url;
             img.alt = driver.name;
             img.setAttribute('data-value', driver.name);
+
             img.onclick = function () {
                 document.querySelectorAll('.driver').forEach(d => d.classList.remove('selected'));
                 div.classList.add('selected');
-                document.getElementById('driverInput').value = driver.name;
+                document.getElementById('favorite_driver').value = driver.name;
+                console.log("Selected driver:", driver.name);
             };
 
             const label = document.createElement('p');
