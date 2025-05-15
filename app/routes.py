@@ -180,15 +180,36 @@ def dashboard():
             } if next_race else None
 
             chart_path = generate_standings_chart(standings)
+
         else:
             flash("Unable to fetch F1 data.", "danger")
             standings, next_race_parsed, chart_path = [], None, None
 
+        # Fetch favorite team info
+        favorite_team = current_user.favorite_team
+        team_info = None
+        team_logo = None
+        if favorite_team:
+            team_info = fetch_team_details(favorite_team)
+            for team in fetch_teams():
+                if team["name"].lower().strip() == favorite_team.lower().strip():
+                    team_logo = team["image_url"]
+                    break
+
     except Exception as e:
         flash(f"Error fetching F1 data: {str(e)}", "danger")
         standings, next_race_parsed, chart_path = [], None, None
+        team_info = team_logo = None
 
-    return render_template("dashboard.html", standings=standings, next_race=next_race_parsed, chart_path=chart_path)
+    return render_template(
+        "dashboard.html",
+        standings=standings,
+        next_race=next_race_parsed,
+        chart_path=chart_path,
+        team_info=team_info,
+        team_logo=team_logo,
+        favorite_team=favorite_team
+    )
 
 
 # ---------- Forgot Password ----------
