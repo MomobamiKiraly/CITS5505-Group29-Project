@@ -232,7 +232,7 @@ def edit_profile():
     form.favorite_team.choices = [(team["name"], team["name"]) for team in teams]
 
     # Determine selected team (use current user's favorite or default to first team)
-    selected_team = user.favorite_team or teams[0]["name"]
+    selected_team = form.favorite_team.data or teams[0]["name"]
 
     # Populate driver choices based on selected team
     form.favorite_driver.choices = [
