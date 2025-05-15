@@ -11,10 +11,9 @@
   {% if user.id == current_user.id %}
   <div class="navbar">
     <div class="nav-links">
-      <a href="{{ url_for('main.upload') }}">Make Prediction</a> |
       <a href="{{ url_for('main.dashboard') }}">Go to Dashboard</a> |
       <a href="{{ url_for('main.friends') }}">👥 Friends</a> |
-      <a href="{{ url_for('main.chatbot') }}">Ask the AI Chatbot</a> |
+      <a href="{{ url_for('main.chatbot') }}">🤖 AI Chatbot</a>
       <a href="{{ url_for('main.logout') }}">Logout</a>
     </div>
   </div>
@@ -22,75 +21,111 @@
 
   <div class="container">
     <div class="header">
-        <img src="{{ url_for('static', filename='profile_pics/' + (user.profile_pic if user.profile_pic else 'default.jpg')) }}"
-             alt="Profile Picture">
-        <div class="header-info">
-            <h2>{{ user.username }}</h2>
-            <p>Email: {{ user.email }}</p>
-            {% if user.favorite_team %}
-            <p>Team: {{ user.favorite_team }}</p>
-            {% endif %}
-            {% if user.favorite_driver %}
-            <p>Driver: {{ user.favorite_driver }}</p>
-            {% endif %}
-            {% if user.bio %}
-            <p><em>{{ user.bio }}</em></p>
-            {% endif %}
-        </div>
-        <div class="follow-btn">
-            {% if user.id != current_user.id %}
-                {% if is_following %}
-                    <a href="{{ url_for('main.unfollow', user_id=user.id) }}">Unfollow</a>
-                {% else %}
-                    <a href="{{ url_for('main.follow', user_id=user.id) }}">Follow</a>
-                {% endif %}
-            {% else %}
-                <a href="{{ url_for('main.edit_profile') }}">Edit</a>
-            {% endif %}
-        </div>
+      <img
+        src="{{ url_for('static', filename='profile_pics/' + (user.profile_pic if user.profile_pic else 'default.jpg')) }}"
+        alt="Profile Picture">
+      <div class="header-info">
+        <h2>{{ user.username }}</h2>
+        <p>Email: {{ user.email }}</p>
+        {% if user.bio %}
+        <p><em>{{ user.bio }}</em></p>
+        {% endif %}
+      </div>
+      <div class="follow-btn">
+        {% if user.id != current_user.id %}
+        {% if is_following %}
+        <a href="{{ url_for('main.unfollow', user_id=user.id) }}">Unfollow</a>
+        {% else %}
+        <a href="{{ url_for('main.follow', user_id=user.id) }}">Follow</a>
+        {% endif %}
+        {% else %}
+        <a href="{{ url_for('main.edit_profile') }}">Edit</a>
+        {% endif %}
+      </div>
     </div>
 
-    {% if user.id == current_user.id %}
-    <div class="blog-form">
-        <form method="POST">
+    <div class="container">
+      <!-- Tab Buttons -->
+      <div class="toggle-group">
+        <button class="toggle-btn" onclick="showSection('blog')">📝 Blog</button>
+        <button class="toggle-btn" onclick="showSection('next-race')">🏁 Next Race</button>
+        <button class="toggle-btn" onclick="showSection('prediction')">📊 My Prediction</button>
+        <button class="toggle-btn" onclick="showSection('fav-driver')">🚗 Favorite Driver</button>
+        <button class="toggle-btn" onclick="showSection('fav-team')">🏎 Favorite Team</button>
+      </div>
+
+      <!-- Blog Section -->
+      <div id="blog" class="section-tab">
+        {% if user.id == current_user.id %}
+        <div class="blog-form">
+          <form method="POST">
             <input type="text" name="title" placeholder="What's on your mind?" required>
             <textarea name="content" placeholder="Write your blog..." required></textarea>
             <label class="checkbox-label">
-                <input type="checkbox" name="is_public" id="is_public" checked>
-                Make public
+              <input type="checkbox" name="is_public" id="is_public" checked>
+              Make public
             </label>
             <button type="submit">Post</button>
-        </form>
-    </div>
-    {% endif %}
+          </form>
+        </div>
+        {% endif %}
 
-    {% if posts %}
+        {% if posts %}
         {% for post in posts %}
         <div class="blog-post">
-            <h3>{{ post.title }}</h3>
-            <small>{{ post.timestamp.strftime('%Y-%m-%d %H:%M') }}</small>
-            <p>{{ post.content }}</p>
-            {% if not post.is_public %}
-                <span class="badge-private">Followers Only</span>
-            {% endif %}
+          <h3>{{ post.title }}</h3>
+          <small>{{ post.timestamp.strftime('%Y-%m-%d %H:%M') }}</small>
+          <p>{{ post.content }}</p>
+          {% if not post.is_public %}
+          <span class="badge-private">Followers Only</span>
+          {% endif %}
         </div>
         {% endfor %}
-    {% else %}
+        {% else %}
         <p style="color: #888;">No blog posts yet.</p>
-    {% endif %}
+        {% endif %}
+      </div>
 
-    <div class="blog-post">
-      <h3>Your Predictions</h3>
-      {% if predictions %}
+      <!-- Next Race Section -->
+      <div id="next-race" class="section-tab">
+        <div class="blog-post">
+          <h4>Next Race: {{ predictions[0].race_name if predictions else "Unnamed Race" }}</h4>
+
+        </div>
+      </div>
+
+      <!-- My Prediction Section -->
+      <div id="prediction" class="section-tab">
+        <h4>Your Predictions</h4>
+        <div class="follow-btn">
+          <a href="{{ url_for('main.upload') }}" class="btn btn-danger">Make Prediction</a>
+        </div>
+        {% if predictions %}
         <ul>
           {% for prediction in predictions %}
-            <li>{{ prediction.race_name }} - {{ prediction.prediction_result or 'No result' }}</li>
+          <li>🏁 Race Winner: {{ prediction.predicted_winner or "Not set" }}</li>
+          <li>⚡ Fastest Lap: {{ prediction.fastest_lap or "Not set" }}</li>
           {% endfor %}
         </ul>
-      {% else %}
+        {% else %}
         <p style="color: #888;">No predictions yet.</p>
-      {% endif %}
+        {% endif %}
+      </div>
+
+      <!-- Favorite Driver Section -->
+      <div id="fav-driver" class="section-tab">
+        <h4>Favorite Driver</h4>
+        <p>{{ user.favorite_driver or "No favorite driver set." }}</p>
+      </div>
+
+      <!-- Favorite Team Section -->
+      <div id="fav-team" class="section-tab">
+        <h4>Favorite Team</h4>
+        <p>{{ user.favorite_team or "No favorite team set." }}</p>
+      </div>
     </div>
-  </div>
+
+    <script src="{{ url_for('static', filename='js/profile.js') }}"></script>
 </body>
+
 </html>

@@ -8,10 +8,12 @@ from werkzeug.utils import secure_filename
 from sqlalchemy import or_
 from app.forms import LoginForm
 from app.models import User, Prediction, BlogPost, Friendship
-from app import db
+from app import db,csrf
 import matplotlib
 matplotlib.use('Agg')  # Use non-GUI backend to avoid Tkinter issues
 import matplotlib.pyplot as plt
+from app.utils import fetch_teams, get_drivers_by_team, get_next_race_name
+
 
 main = Blueprint('main', __name__)
 
@@ -51,34 +53,17 @@ from app.forms import LoginForm, RegisterForm  # 🔄 确保导入 RegisterForm
 @main.route('/register', methods=['GET', 'POST'])
 def register():
     form = RegisterForm()
-
-    teams = [
-        {"name": "Ferrari", "image_url": "https://media.formula1.com/image/upload/f_auto,c_limit,q_auto,w_1320/content/dam/fom-website/2018-redesign-assets/team%20logos/ferrari.jpg"},
-        {"name": "Red Bull", "image_url": "https://media.formula1.com/image/upload/f_auto,c_limit,q_auto,w_1320/content/dam/fom-website/2018-redesign-assets/team%20logos/red%20bull.jpg"},
-        {"name": "Mercedes", "image_url": "https://media.formula1.com/image/upload/f_auto,c_limit,q_auto,w_1320/content/dam/fom-website/2018-redesign-assets/team%20logos/mercedes.jpg"},
-        {"name": "McLaren", "image_url": "https://media.formula1.com/image/upload/f_auto,c_limit,q_auto,w_1320/content/dam/fom-website/2018-redesign-assets/team%20logos/mclaren.jpg"}
-    ]
-
-    drivers_by_team = {
-        "Ferrari": [
-            {"name": "Charles Leclerc", "image_url": "https://media.formula1.com/image/upload/f_auto,c_limit,q_auto,w_1320/content/dam/fom-website/drivers/2025Drivers/leclerc.jpg"},
-            {"name": "Lewis Hamilton", "image_url": "https://media.formula1.com/image/upload/f_auto,c_limit,q_auto,w_1320/content/dam/fom-website/drivers/2025Drivers/hamilton.jpg"}
-        ],
-        "Red Bull": [
-            {"name": "Max Verstappen", "image_url": "https://media.formula1.com/image/upload/f_auto,c_limit,q_auto,w_1320/content/dam/fom-website/drivers/2025Drivers/verstappen.jpg"},
-            {"name": "Liam Lawson", "image_url": "https://media.formula1.com/image/upload/f_auto,c_limit,q_auto,w_1320/content/dam/fom-website/drivers/2025Drivers/lawson.jpg"}
-        ],
-        "Mercedes": [
-            {"name": "George Russell", "image_url": "https://media.formula1.com/image/upload/f_auto,c_limit,q_auto,w_1320/content/dam/fom-website/drivers/2025Drivers/russell.jpg"},
-            {"name": "Andrea Kimi Antonelli", "image_url": "https://media.formula1.com/image/upload/f_auto,c_limit,q_auto,w_1320/content/dam/fom-website/drivers/2025Drivers/antonelli.jpg"}
-        ],
-        "McLaren": [
-            {"name": "Lando Norris", "image_url": "https://media.formula1.com/image/upload/f_auto,c_limit,q_auto,w_1320/content/dam/fom-website/drivers/2025Drivers/norris.jpg"},
-            {"name": "Oscar Piastri", "image_url": "https://media.formula1.com/image/upload/f_auto,c_limit,q_auto,w_1320/content/dam/fom-website/drivers/2025Drivers/piastri.jpg"}
-        ]
-    }
+    teams = fetch_teams()
+    drivers_by_team = get_drivers_by_team()
 
     if form.validate_on_submit():
+        # Get values from regular request.form, not from WTForms
+        favorite_team = request.form.get('favorite_team')
+        favorite_driver = request.form.get('favorite_driver')
+
+        print("Favorite team from request:", favorite_team)
+        print("Favorite driver from request:", favorite_driver)
+
         existing_user = User.query.filter(
             (User.username == form.username.data) | (User.email == form.email.data)
         ).first()
@@ -90,8 +75,8 @@ def register():
         new_user = User(
             username=form.username.data,
             email=form.email.data,
-            favorite_team=form.favorite_team.data,
-            favorite_driver=form.favorite_driver.data,
+            favorite_team=favorite_team,
+            favorite_driver=favorite_driver,
             profile_pic='default.jpg'
         )
         new_user.set_password(form.password.data)
@@ -210,6 +195,7 @@ def forgot_password():
 
 # ---------- Edit Profile ----------
 @main.route('/edit-profile', methods=['GET', 'POST'])
+@csrf.exempt
 def edit_profile():
     if 'user_id' not in session:
         return redirect(url_for('main.login'))
@@ -236,11 +222,14 @@ def edit_profile():
         db.session.commit()
         flash('Profile updated successfully.', 'success')
         return redirect(url_for('main.profile'))
-
-    return render_template('edit_profile.html', user=user)
-
+    teams = fetch_teams()
+    drivers_by_team=get_drivers_by_team()
+    print(user.favorite_team,user.favorite_driver)
+    return render_template('edit_profile.html', user=user,teams=teams, drivers_by_team=drivers_by_team)
+    
 # ---------- Current User Profile ----------
 @main.route('/profile', methods=['GET', 'POST'])
+@csrf.exempt
 @login_required
 def profile():
     user = User.query.get_or_404(session['user_id'])
@@ -274,7 +263,6 @@ def profile():
         posts=posts,
         is_following=None  # Not relevant for self-profile
     )
-
 # ---------- Any User Profile + Blog ----------
 @main.route('/profile/<int:user_id>', methods=['GET', 'POST'])
 @login_required
@@ -390,44 +378,48 @@ def ask():
 
 # ---------- Upload (Prediction?) ----------
 @main.route('/upload', methods=['GET', 'POST'])
+@login_required
+@csrf.exempt
 def upload():
-    teams = [
-        {"name": "Ferrari", "image_url": "..."},
-        {"name": "Red Bull", "image_url": "..."},
-        {"name": "Mercedes", "image_url": "..."},
-        {"name": "McLaren", "image_url": "..."}
-    ]
 
-    drivers_by_team = {
-        "Ferrari": [...],
-        "Red Bull": [...],
-        "Mercedes": [...],
-        "McLaren": [...]
-    }
+     # --- Fetch API Data ---
+    drivers_by_team = get_drivers_by_team()
+    if drivers_by_team is None:
+        flash("Failed to fetch driver/team data from the API.", "danger")
+        drivers_by_team = {}
 
+    race_name = get_next_race_name()
+    if race_name is None:
+        race_name = "Upcoming Race"
+        flash("Could not retrieve race name.", "warning")
+
+    # --- Handle Form Submission ---
     if request.method == 'POST':
-        user = User(
-            full_name=request.form['full_name'],
-            age=request.form['age'],
-            team=request.form['team'],
-            driver=request.form['driver']
-        )
-        db.session.add(user)
+        predicted_winner = request.form['predicted_winner']
+        fastest_lap = request.form['fastest_lap']
+
+        existing_prediction = Prediction.query.filter_by(user_id=current_user.id, race_name=race_name).first()
+
+        if existing_prediction:
+            existing_prediction.predicted_winner = predicted_winner
+            existing_prediction.fastest_lap = fastest_lap
+        else:
+            new_prediction = Prediction(
+                user_id=current_user.id,
+                predicted_winner=predicted_winner,
+                fastest_lap=fastest_lap,
+                race_name=race_name
+            )
+            db.session.add(new_prediction)
+
         db.session.commit()
+        flash('Prediction saved successfully!', 'success')
+        return redirect(url_for('main.profile'))
 
-        prediction = Prediction(
-            user_id=user.id,
-            race_winner=request.form['race_winner'],
-            top_3=request.form['top_3'],
-            fastest_lap=request.form['fastest_lap']
-        )
-        db.session.add(prediction)
-        db.session.commit()
+    # --- Render Form ---
+    return render_template('upload.html', drivers_by_team=drivers_by_team, race_name=race_name)
 
-        flash('Data successfully uploaded!', 'success')
-        return redirect(url_for('main.upload'))
 
-    return render_template('upload.html', teams=teams, drivers_by_team=drivers_by_team)
 
 # ---------- DeepSeek Chat API ----------
 @main.route("/chat", methods=["POST"])

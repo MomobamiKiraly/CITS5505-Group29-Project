@@ -1,22 +1,25 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <title>Edit Profile - F1 Predictor</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
+
 </head>
+
 <body>
     <div class="login-container">
 
-        
+
         {% with messages = get_flashed_messages(with_categories=true) %}
-          {% if messages %}
-            {% for category, message in messages %}
-              <div class="alert alert-{{ category }}">
-                {{ message }}
-              </div>
-            {% endfor %}
-          {% endif %}
+        {% if messages %}
+        {% for category, message in messages %}
+        <div class="alert alert-{{ category }}">
+            {{ message }}
+        </div>
+        {% endfor %}
+        {% endif %}
         {% endwith %}
 
         <form method="POST" enctype="multipart/form-data">
@@ -32,15 +35,32 @@
                 <input class="input" type="email" name="email" value="{{ user.email }}" required>
             </div>
 
+            <!-- Favorite Team dropdown -->
             <div class="form-group">
                 <label class="label" for="favorite_team">Favorite Team</label>
-                <input class="input" type="text" name="favorite_team" value="{{ user.favorite_team }}">
+                <select name="favorite_team" id="favorite_team" class="input">
+                    {% for team in teams %}
+                    <option value="{{ team.name }}" {% if user.favorite_team==team.name %}selected{% endif %}>
+                        {{ team.name }}
+                    </option>
+                    {% endfor %}
+                </select>
             </div>
 
             <div class="form-group">
                 <label class="label" for="favorite_driver">Favorite Driver</label>
-                <input class="input" type="text" name="favorite_driver" value="{{ user.favorite_driver }}">
+                <select name="favorite_driver" id="favorite_driver" class="input">
+                    {% for driver in drivers_by_team[user.favorite_team] %}
+                    <option value="{{ driver.name }}" {% if driver.name==user.favorite_driver %}selected{% endif %}>
+                        {{ driver.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+                </select>
             </div>
+
+
+
 
             <div class="form-group">
                 <label class="label" for="bio">Bio</label>
@@ -57,4 +77,14 @@
 
     </div>
 </body>
+
 </html>
+
+<script>
+    const driversByTeam = {{ drivers_by_team | tojson }};
+    const selectedTeam = "{{ user.favorite_team }}";
+    const selectedDriver = "{{ user.favorite_driver }}";
+</script>
+
+<!-- Link to external JS -->
+<script src="{{ url_for('static', filename='js/edit_profile.js') }}"></script>
