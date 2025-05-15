@@ -118,7 +118,7 @@ def generate_standings_chart(standings):
     ax.set_xticks([])
     ax.set_title("F1 Driver Standings")
 
-    # 🔧 改为项目根目录/static/charts/
+    
     chart_dir = os.path.join(os.path.dirname(current_app.root_path), 'static', 'charts')
     os.makedirs(chart_dir, exist_ok=True)
     chart_path = os.path.join(chart_dir, 'standings.png')

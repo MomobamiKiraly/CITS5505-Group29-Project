@@ -90,3 +90,12 @@ canvas {
   border-radius: 6px;
   margin-top: 15px;
 }
+
+.standings-img {
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+  display: block;
+  border-radius: 10px;
+  box-shadow: 0 0 12px rgba(0, 0, 0, 0.2);
+}
