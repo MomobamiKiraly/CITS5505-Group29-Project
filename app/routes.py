@@ -6,13 +6,14 @@ from flask import Blueprint, render_template, redirect, url_for, flash, request,
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.utils import secure_filename
 from sqlalchemy import or_
-from app.forms import LoginForm
+from app.forms import LoginForm, UploadPredictionForm
 from app.models import User, Prediction, BlogPost, Friendship
 from app import db,csrf
 import matplotlib
 matplotlib.use('Agg')  # Use non-GUI backend to avoid Tkinter issues
 import matplotlib.pyplot as plt
 from app.utils import fetch_teams, get_drivers_by_team, get_next_race_name,fetch_driver_details,fetch_team_details
+from flask_wtf.csrf import CSRFProtect
 
 
 main = Blueprint('main', __name__)
@@ -179,15 +180,36 @@ def dashboard():
             } if next_race else None
 
             chart_path = generate_standings_chart(standings)
+
         else:
             flash("Unable to fetch F1 data.", "danger")
             standings, next_race_parsed, chart_path = [], None, None
 
+        # Fetch favorite team info
+        favorite_team = current_user.favorite_team
+        team_info = None
+        team_logo = None
+        if favorite_team:
+            team_info = fetch_team_details(favorite_team)
+            for team in fetch_teams():
+                if team["name"].lower().strip() == favorite_team.lower().strip():
+                    team_logo = team["image_url"]
+                    break
+
     except Exception as e:
         flash(f"Error fetching F1 data: {str(e)}", "danger")
         standings, next_race_parsed, chart_path = [], None, None
+        team_info = team_logo = None
 
-    return render_template("dashboard.html", standings=standings, next_race=next_race_parsed, chart_path=chart_path)
+    return render_template(
+        "dashboard.html",
+        standings=standings,
+        next_race=next_race_parsed,
+        chart_path=chart_path,
+        team_info=team_info,
+        team_logo=team_logo,
+        favorite_team=favorite_team
+    )
 
 
 # ---------- Forgot Password ----------
@@ -231,7 +253,7 @@ def edit_profile():
     form.favorite_team.choices = [(team["name"], team["name"]) for team in teams]
 
     # Determine selected team (use current user's favorite or default to first team)
-    selected_team = user.favorite_team or teams[0]["name"]
+    selected_team = form.favorite_team.data or teams[0]["name"]
 
     # Populate driver choices based on selected team
     form.favorite_driver.choices = [
@@ -303,7 +325,6 @@ def profile():
         return redirect(url_for('main.profile'))
 
     # --- Prepare page content ---
-    predictions = Prediction.query.filter_by(user_id=user.id).all()
     posts = BlogPost.query.filter_by(author_id=user.id).all()
     
     # ✨ Use utils functions
@@ -312,7 +333,10 @@ def profile():
     # Fetch team/driver image data
     teams = fetch_teams()
     drivers_by_team = get_drivers_by_team()
-
+    upcoming_races = get_next_race_name()
+    user_predictions = {
+        p.race_name: p for p in Prediction.query.filter_by(user_id=current_user.id).all()
+    }
     # Match user favorite team and driver with image
     team_image = next((t['image_url'] for t in teams if t['name'] == user.favorite_team), None)
     driver_image = None
@@ -325,12 +349,13 @@ def profile():
     return render_template(
         'profile.html',
         user=user,
-        predictions=predictions,
         posts=posts,
         team=team_info,
         driver=driver_info,
         team_image=team_image,
         driver_image=driver_image,
+        upcoming_races=upcoming_races,
+        user_predictions=user_predictions,
         is_following=None
     )
 # ---------- Any User Profile + Blog ----------
@@ -446,28 +471,23 @@ def ask():
 
     return jsonify({'reply': reply})
 
-from app.forms import UploadPredictionForm
-from flask_login import login_required
-from flask_wtf.csrf import CSRFProtect
-
 @main.route('/upload', methods=['GET', 'POST'])
 @login_required
 def upload():
-    # --- Fetch API Data ---
-    drivers_by_team = get_drivers_by_team()
-    if drivers_by_team is None:
-        flash("Failed to fetch driver/team data from the API.", "danger")
-        drivers_by_team = {}
+    # --- Fetch Data ---
+    drivers_by_team = get_drivers_by_team() or {}
+    upcoming_races = get_next_race_name()
 
-    race_name = get_next_race_name()
-    if race_name is None:
-        race_name = "Upcoming Race"
-        flash("Could not retrieve race name.", "warning")
+    if not drivers_by_team:
+        flash("Failed to fetch driver/team data from the API.", "danger")
+
+    if not upcoming_races:
+        flash("Could not retrieve race schedule.", "warning")
+        upcoming_races = [{"raceName": "Unknown Race", "date": "N/A"}]
 
     # --- Prepare Form ---
     form = UploadPredictionForm()
 
-    # Flatten driver options (e.g., "Verstappen (Red Bull)")
     all_drivers = [
         (driver["name"], f'{driver["name"]} ({team})')
         for team, drivers in drivers_by_team.items()
@@ -478,6 +498,7 @@ def upload():
 
     # --- Handle Submission ---
     if form.validate_on_submit():
+        race_name = request.form.get('race_name')  # From the dropdown
         predicted_winner = form.predicted_winner.data
         fastest_lap = form.fastest_lap.data
 
@@ -499,12 +520,12 @@ def upload():
         flash('Prediction saved successfully!', 'success')
         return redirect(url_for('main.profile'))
 
-    # --- Initial render ---
+    # --- Render Template ---
     return render_template(
         'upload.html',
         form=form,
         drivers_by_team=drivers_by_team,
-        race_name=race_name
+        upcoming_races=upcoming_races
     )
 
 

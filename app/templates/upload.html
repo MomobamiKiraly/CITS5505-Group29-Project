@@ -22,7 +22,14 @@
 
         <form method="POST" action="{{ url_for('main.upload') }}">
             {{ form.hidden_tag() }}
-
+            <div class="mb-3">
+                <label for="race_name" class="form-label">Select Race</label>
+                <select class="form-select" id="race_name" name="race_name">
+                    {% for race in upcoming_races %}
+                    <option value="{{ race.raceName }}">{{ race.raceName }} ({{ race.date }})</option>
+                    {% endfor %}
+                </select>
+            </div>
             <div class="mb-3">
                 {{ form.predicted_winner.label(class="form-label") }}
                 {{ form.predicted_winner(class="form-select", id="predicted_winner") }}
