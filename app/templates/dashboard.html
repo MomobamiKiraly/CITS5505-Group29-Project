@@ -20,14 +20,22 @@
     <!-- Team Card (You can replace this with user's favorite team info if needed) -->
     <div class="card team-card">
       <h2>Your F1 Team</h2>
+      {% if favorite_team and team_info %}
       <div class="team-logo-name">
-        <img src="{{ url_for('static', filename='images/ferrari-logo.png') }}" alt="Team Logo" class="team-logo">
-        <div class="team-name">{{ current_user.favorite_team or "No team selected" }}</div>
+        <img src="{{ team_logo }}" alt="{{ favorite_team }} Logo" class="team-logo">
+        <div class="team-name">{{ favorite_team }}</div>
       </div>
       <div class="team-points">
-        <span>Track Your Team's Points</span>
-        <div class="points-box">—</div>
+        <span>Track Your Team's Performance</span>
+        <div style="display: flex; gap: 2rem;">
+          <p><strong>Position:</strong> {{ team_info.position }}</p>
+          <p><strong>Points:</strong> {{ team_info.points }}</p>
+          <p><strong>Wins:</strong> {{ team_info.wins }}</p>
+        </div>
       </div>
+      {% else %}
+      <div class="team-name">No favorite team selected.</div>
+      {% endif %}
     </div>
 
     <!-- Standings -->
