@@ -1,30 +1,39 @@
 body {
-    background-color: #111;
-    color: white;
-    font-family: 'Helvetica Neue', sans-serif;
+  background-color: #111;
+  color: white;
+  font-family: 'Helvetica Neue', sans-serif;
 }
 
 .container {
-    margin-top: 50px;
-    background-color: #1c1c1c;
-    padding: 30px;
-    border-radius: 10px;
+  margin-top: 50px;
+  background-color: #1c1c1c;
+  padding: 30px;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(255, 0, 0, 0.2);
 }
 
 label {
-    font-weight: bold;
-    margin-top: 10px;
+  font-weight: bold;
+  margin-top: 10px;
 }
 
 .form-control,
 .form-select {
-    background-color: #333;
-    color: white;
-    border: 1px solid #555;
+  background-color: #333;
+  color: white;
+  border: 1px solid #555;
 }
 
 .btn-primary {
-    background-color: #e10600;
-    border: none;
-    margin-top: 20px;
+  background-color: #e10600;
+  border: none;
+  margin-top: 20px;
+}
+
+.btn-primary:hover {
+  background-color: #b80500;
+}
+
+.navbar.bg-danger {
+  background-color: #e10600 !important;
 }
