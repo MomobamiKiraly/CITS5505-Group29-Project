@@ -12,7 +12,7 @@ from app import db,csrf
 import matplotlib
 matplotlib.use('Agg')  # Use non-GUI backend to avoid Tkinter issues
 import matplotlib.pyplot as plt
-from app.utils import fetch_teams, get_drivers_by_team, get_next_race_name
+from app.utils import fetch_teams, get_drivers_by_team, get_next_race_name,fetch_driver_details,fetch_team_details
 
 
 main = Blueprint('main', __name__)
@@ -294,13 +294,33 @@ def profile():
     # --- Prepare page content ---
     predictions = Prediction.query.filter_by(user_id=user.id).all()
     posts = BlogPost.query.filter_by(author_id=user.id).all()
+    
+    # ✨ Use utils functions
+    team_info = fetch_team_details(user.favorite_team) if user.favorite_team else None
+    driver_info = fetch_driver_details(user.favorite_driver) if user.favorite_driver else None
+    # Fetch team/driver image data
+    teams = fetch_teams()
+    drivers_by_team = get_drivers_by_team()
+
+    # Match user favorite team and driver with image
+    team_image = next((t['image_url'] for t in teams if t['name'] == user.favorite_team), None)
+    driver_image = None
+    if user.favorite_team in drivers_by_team:
+        for d in drivers_by_team[user.favorite_team]:
+            if d['name'] == user.favorite_driver:
+                driver_image = d['image_url']
+                break
 
     return render_template(
         'profile.html',
         user=user,
         predictions=predictions,
         posts=posts,
-        is_following=None  # Not relevant for self-profile
+        team=team_info,
+        driver=driver_info,
+        team_image=team_image,
+        driver_image=driver_image,
+        is_following=None
     )
 # ---------- Any User Profile + Blog ----------
 @main.route('/profile/<int:user_id>', methods=['GET', 'POST'])
