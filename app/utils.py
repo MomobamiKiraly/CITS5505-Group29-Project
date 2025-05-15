@@ -1,7 +1,7 @@
 import requests
 from datetime import datetime, timezone
 
-ERGAST_BASE_URL = "https://ergast.com/api/f1"
+ERGAST_BASE_URL = "https://api.jolpi.ca/ergast/f1"
 
 
 def fetch_teams():
@@ -201,30 +201,12 @@ def get_next_race_name():
         return []
 
 
-def get_team_details(constructor_id):
-    url = f"http://ergast.com/api/f1/constructors/{constructor_id}.json"
-    response = requests.get(url)
-    data = response.json()
-    
-    # Extract the team data from the response
-    team_data = data['MRData']['ConstructorTable']['Constructors'][0]
-    
-    return {
-        "name": team_data["name"],
-        "nationality": team_data["nationality"],
-        "url": team_data["url"],
-        "wins": team_data.get("wins", 0),
-        "podiums": team_data.get("podiums", 0),
-        "points": team_data.get("points", 0),
-        "championships": team_data.get("championships", 0),
-    }
 
-#changed
 def fetch_team_details(team_name):
     team_id = team_name.lower().replace(" ", "_")
     try:
-        team_url = f"https://ergast.com/api/f1/constructors/{team_id}.json"
-        standings_url = f"https://ergast.com/api/f1/current/constructorStandings.json"
+        team_url = f"https://api.jolpi.ca/ergast/f1/constructors/{team_id}.json"
+        standings_url = f"https://api.jolpi.ca/ergast/f1/current/constructorStandings.json"
 
         team_data = requests.get(team_url).json()
         standings_data = requests.get(standings_url).json()
@@ -256,7 +238,7 @@ DRIVER_ID_MAP = {
     "Pierre Gasly": "gasly",
     "Esteban Ocon": "ocon",
     "Valtteri Bottas": "bottas",
-    "Guanyu Zhou": "zhou",
+    "Andrea Kimi Antonelli": "antonelli",
     "Kevin Magnussen": "magnussen",
     "Nico Hülkenberg": "hulkenberg",
     "Yuki Tsunoda": "tsunoda",
@@ -271,8 +253,8 @@ def fetch_driver_details(driver_name):
         return None  # Unrecognized driver
 
     try:
-        driver_url = f"https://ergast.com/api/f1/drivers/{driver_id}.json"
-        standings_url = f"https://ergast.com/api/f1/current/driverStandings.json"
+        driver_url = f"https://api.jolpi.ca/ergast/f1/drivers/{driver_id}.json"
+        standings_url = f"https://api.jolpi.ca/ergast/f1/current/driverStandings.json"
 
         driver_data = requests.get(driver_url).json()
         standings_data = requests.get(standings_url).json()
