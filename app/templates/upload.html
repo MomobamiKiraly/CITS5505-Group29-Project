@@ -11,32 +11,29 @@
 <body>
     <div class="container">
         <h2 class="text-center text-danger mb-4">Race Prediction</h2>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+        <div class="alert alert-{{ category }}">{{ message }}</div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+
         <form method="POST" action="{{ url_for('main.upload') }}">
+            {{ form.hidden_tag() }}
+
             <div class="mb-3">
-                <label for="predicted_winner" class="form-label">Predicted Race Winner</label>
-                <select class="form-select" name="predicted_winner" id="predicted_winner" required>
-                    <option value="">-- Select Winner --</option>
-                    {% for team, drivers in drivers_by_team.items() %}
-                    {% for driver in drivers %}
-                    <option value="{{ driver.name }}">{{ driver.name }} ({{ team }})</option>
-                    {% endfor %}
-                    {% endfor %}
-                </select>
+                {{ form.predicted_winner.label(class="form-label") }}
+                {{ form.predicted_winner(class="form-select", id="predicted_winner") }}
             </div>
 
             <div class="mb-3">
-                <label for="fastest_lap" class="form-label">Fastest Lap Driver</label>
-                <select class="form-select" name="fastest_lap" id="fastest_lap" required>
-                    <option value="">-- Select Driver --</option>
-                    {% for team, drivers in drivers_by_team.items() %}
-                    {% for driver in drivers %}
-                    <option value="{{ driver.name }}">{{ driver.name }} ({{ team }})</option>
-                    {% endfor %}
-                    {% endfor %}
-                </select>
+                {{ form.fastest_lap.label(class="form-label") }}
+                {{ form.fastest_lap(class="form-select", id="fastest_lap") }}
             </div>
 
-            <button type="submit" class="btn btn-primary w-100">Submit Prediction</button>
+            {{ form.submit(class="btn btn-primary w-100") }}
         </form>
     </div>
 </body>
