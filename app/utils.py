@@ -166,3 +166,92 @@ def get_next_race_name():
         return race_data['MRData']['RaceTable']['Races'][0]['raceName']
     except (KeyError, IndexError, requests.exceptions.RequestException):
         return None
+
+def get_team_details(constructor_id):
+    url = f"http://ergast.com/api/f1/constructors/{constructor_id}.json"
+    response = requests.get(url)
+    data = response.json()
+    
+    # Extract the team data from the response
+    team_data = data['MRData']['ConstructorTable']['Constructors'][0]
+    
+    return {
+        "name": team_data["name"],
+        "nationality": team_data["nationality"],
+        "url": team_data["url"],
+        "wins": team_data.get("wins", 0),
+        "podiums": team_data.get("podiums", 0),
+        "points": team_data.get("points", 0),
+        "championships": team_data.get("championships", 0),
+    }
+
+#changed
+def fetch_team_details(team_name):
+    team_id = team_name.lower().replace(" ", "_")
+    try:
+        team_url = f"https://ergast.com/api/f1/constructors/{team_id}.json"
+        standings_url = f"https://ergast.com/api/f1/current/constructorStandings.json"
+
+        team_data = requests.get(team_url).json()
+        standings_data = requests.get(standings_url).json()
+
+        team_info = team_data['MRData']['ConstructorTable']['Constructors'][0]
+        standings_list = standings_data['MRData']['StandingsTable']['StandingsLists'][0]['ConstructorStandings']
+
+        team_stats = next((t for t in standings_list if t['Constructor']['constructorId'] == team_id), None)
+        if team_stats:
+            team_info['position'] = team_stats['position']
+            team_info['points'] = team_stats['points']
+            team_info['wins'] = team_stats['wins']
+
+        return team_info
+    except (KeyError, IndexError):
+        return None
+
+DRIVER_ID_MAP = {
+    "Max Verstappen": "max_verstappen",
+    "Sergio Pérez": "perez",
+    "Lewis Hamilton": "hamilton",
+    "George Russell": "russell",
+    "Charles Leclerc": "leclerc",
+    "Carlos Sainz": "sainz",
+    "Lando Norris": "norris",
+    "Oscar Piastri": "piastri",
+    "Fernando Alonso": "alonso",
+    "Lance Stroll": "stroll",
+    "Pierre Gasly": "gasly",
+    "Esteban Ocon": "ocon",
+    "Valtteri Bottas": "bottas",
+    "Guanyu Zhou": "zhou",
+    "Kevin Magnussen": "magnussen",
+    "Nico Hülkenberg": "hulkenberg",
+    "Yuki Tsunoda": "tsunoda",
+    "Daniel Ricciardo": "ricciardo",
+    "Alexander Albon": "albon",
+    "Logan Sargeant": "sargeant"
+}
+
+def fetch_driver_details(driver_name):
+    driver_id = DRIVER_ID_MAP.get(driver_name)
+    if not driver_id:
+        return None  # Unrecognized driver
+
+    try:
+        driver_url = f"https://ergast.com/api/f1/drivers/{driver_id}.json"
+        standings_url = f"https://ergast.com/api/f1/current/driverStandings.json"
+
+        driver_data = requests.get(driver_url).json()
+        standings_data = requests.get(standings_url).json()
+
+        driver_info = driver_data['MRData']['DriverTable']['Drivers'][0]
+        standings_list = standings_data['MRData']['StandingsTable']['StandingsLists'][0]['DriverStandings']
+
+        driver_stats = next((d for d in standings_list if d['Driver']['driverId'] == driver_id), None)
+        if driver_stats:
+            driver_info['position'] = driver_stats['position']
+            driver_info['points'] = driver_stats['points']
+            driver_info['wins'] = driver_stats['wins']
+
+        return driver_info
+    except (KeyError, IndexError):
+        return None

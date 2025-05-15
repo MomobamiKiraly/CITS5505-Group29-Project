@@ -111,18 +111,69 @@
         <p style="color: #888;">No predictions yet.</p>
         {% endif %}
       </div>
+      
+      <div class="profile-section">
+        <!-- Favorite Driver Section -->
+        <div id="fav-driver" class="section-tab">
+          <h3>🏎️ Favorite Driver</h3>
 
-      <!-- Favorite Driver Section -->
-      <div id="fav-driver" class="section-tab">
-        <h4>Favorite Driver</h4>
-        <p>{{ user.favorite_driver or "No favorite driver set." }}</p>
-      </div>
+          {% if driver %}
+          <div class="driver-info-card-horizontal">
+            <div class="driver-photo-block">
+              <h4>{{ driver.givenName }} {{ driver.familyName }}</h4>
+              {% if driver_image %}
+              <img src="{{ driver_image }}" alt="{{ driver.givenName }} {{ driver.familyName }}"
+                class="driver-photo-large">
+              {% endif %}
+            </div>
+            <div class="driver-details">
+              <ul>
+                <li><strong>Nationality:</strong> {{ driver.nationality }}</li>
+                <li><strong>Date of Birth:</strong> {{ driver.dateOfBirth }}</li>
+                <li><strong>Championship Position:</strong> {{ driver.position or '—' }}</li>
+                <li><strong>Points:</strong> {{ driver.points or '—' }}</li>
+                <li><strong>Wins:</strong> {{ driver.wins or '—' }}</li>
+                <li><strong>URL:</strong>
+                  <a href="{{ driver.url }}" target="_blank" rel="noopener noreferrer">{{ driver.url }}</a>
+                </li>
+              </ul>
+            </div>
+          </div>
+          {% else %}
+          <p>{{ user.favorite_driver or "No favorite driver set." }}</p>
+          {% endif %}
+        </div>
 
-      <!-- Favorite Team Section -->
-      <div id="fav-team" class="section-tab">
-        <h4>Favorite Team</h4>
-        <p>{{ user.favorite_team or "No favorite team set." }}</p>
-      </div>
+        <!-- Favorite Team Section -->
+        <div id="fav-team" class="section-tab">
+          <h3>🏁 Favorite Team</h3>
+
+          {% if team %}
+          <div class="team-info-card-horizontal">
+            <div class="team-photo-block">
+              <h4>{{ team.name | default(user.favorite_team) }}</h4>
+              {% if team_image %}
+              <div class="team-img-block">
+                <img src="{{ team_image }}" alt="{{ team.name }}" class="team-logo-large">
+              </div>
+              {% endif %}
+            </div>
+            <div class="team-details">
+              <ul>
+                <li><strong>Nationality:</strong> {{ team.nationality }}</li>
+                <li><strong>Championship Position:</strong> {{ team.position or '—' }}</li>
+                <li><strong>Points:</strong> {{ team.points or '—' }}</li>
+                <li><strong>Wins:</strong> {{ team.wins or '—' }}</li>
+                <li><strong>URL:</strong>
+                  <a href="{{ team.url }}" target="_blank" rel="noopener noreferrer">{{ team.url }}</a>
+                </li>
+              </ul>
+            </div>
+          </div>
+          {% else %}
+          <p>{{ user.favorite_team or "No favorite team set." }}</p>
+          {% endif %}
+        </div>
     </div>
 
     <script src="{{ url_for('static', filename='js/profile.js') }}"></script>
