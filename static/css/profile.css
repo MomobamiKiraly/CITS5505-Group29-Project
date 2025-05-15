@@ -23,7 +23,7 @@ body {
 
 .container {
     width: 90%;
-    max-width: 900px;
+    max-width: 1000px;
     margin: auto;
     padding-top: 30px;
 }
@@ -242,4 +242,30 @@ body {
     /* remove default inline spacing */
     height: auto;
     max-width: 100%;
+}
+
+.table-responsive {
+    overflow-x: auto;
+}
+
+.table-responsive table {
+    width: 100%;
+    min-width: 700px;
+    /* adjust as needed */
+}
+
+.prediction-table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    margin-top: 20px;
+}
+
+.prediction-table {
+    width: 100%;
+    min-width: 800px;
+}
+
+.table thead th {
+    text-align: left !important;
+    vertical-align: middle;
 }

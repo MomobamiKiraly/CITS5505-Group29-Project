@@ -1,11 +1,13 @@
 <!doctype html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <title>{{ user.username }}'s Profile</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}">
-    <script src="{{ url_for('static', filename='js/profile.js') }}"></script>
+  <meta charset="UTF-8">
+  <title>{{ user.username }}'s Profile</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}">
+  <script src="{{ url_for('static', filename='js/profile.js') }}"></script>
 </head>
+
 <body>
 
   {% if user.id == current_user.id %}
@@ -48,7 +50,6 @@
       <!-- Tab Buttons -->
       <div class="toggle-group">
         <button class="toggle-btn" onclick="showSection('blog')">📝 Blog</button>
-        <button class="toggle-btn" onclick="showSection('next-race')">🏁 Next Race</button>
         <button class="toggle-btn" onclick="showSection('prediction')">📊 My Prediction</button>
         <button class="toggle-btn" onclick="showSection('fav-driver')">🚗 Favorite Driver</button>
         <button class="toggle-btn" onclick="showSection('fav-team')">🏎 Favorite Team</button>
@@ -86,36 +87,49 @@
         {% endif %}
       </div>
 
-      <!-- Next Race Section -->
-      <div id="next-race" class="section-tab">
-        <div class="blog-post">
-          <h4>Next Race: {{ predictions[0].race_name if predictions else "Unnamed Race" }}</h4>
-
-        </div>
-      </div>
-
       <!-- My Prediction Section -->
+
       <div id="prediction" class="section-tab">
-        <h4>Your Predictions</h4>
-        <div class="follow-btn">
-          <a href="{{ url_for('main.upload') }}" class="btn btn-danger">Make Prediction</a>
+        <div class="blog-form">
+          {% if upcoming_races %}
+          <div class="prediction-table-wrapper">
+            <table class="prediction-table table table-bordered table-striped align-middle text-center">
+              <thead class="table-dark">
+                <tr>
+                  <th>Race Name</th>
+                  <th>Date</th>
+                  <th>Location</th>
+                  <th>Predicted Winner</th>
+                  <th>Fastest Lap</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for race in upcoming_races %}
+                {% set prediction = user_predictions.get(race['raceName']) %}
+                <tr>
+                  <td>{{ race.raceName }}</td>
+                  <td>{{ race.date }}</td>
+                  <td>{{ race.location }}</td>
+                  <td>{{ prediction.predicted_winner if prediction else "No prediction" }}</td>
+                  <td>{{ prediction.fastest_lap if prediction else "No prediction" }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% else %}
+          <p class="text-muted">Race schedule not available.</p>
+          {% endif %}
+          <div class="follow-btn mb-3" style="margin-top: 15px;">
+            <a href="{{ url_for('main.upload') }}" class="btn btn-danger">Make Prediction</a>
+          </div>
         </div>
-        {% if predictions %}
-        <ul>
-          {% for prediction in predictions %}
-          <li>🏁 Race Winner: {{ prediction.predicted_winner or "Not set" }}</li>
-          <li>⚡ Fastest Lap: {{ prediction.fastest_lap or "Not set" }}</li>
-          {% endfor %}
-        </ul>
-        {% else %}
-        <p style="color: #888;">No predictions yet.</p>
-        {% endif %}
       </div>
-      
+
+
       <div class="profile-section">
         <!-- Favorite Driver Section -->
         <div id="fav-driver" class="section-tab">
-          <h3>🏎️ Favorite Driver</h3>
 
           {% if driver %}
           <div class="driver-info-card-horizontal">
@@ -146,8 +160,6 @@
 
         <!-- Favorite Team Section -->
         <div id="fav-team" class="section-tab">
-          <h3>🏁 Favorite Team</h3>
-
           {% if team %}
           <div class="team-info-card-horizontal">
             <div class="team-photo-block">
@@ -174,9 +186,9 @@
           <p>{{ user.favorite_team or "No favorite team set." }}</p>
           {% endif %}
         </div>
-    </div>
+      </div>
 
-    <script src="{{ url_for('static', filename='js/profile.js') }}"></script>
+      <script src="{{ url_for('static', filename='js/profile.js') }}"></script>
 </body>
 
 </html>
