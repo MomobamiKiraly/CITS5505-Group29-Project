@@ -1,86 +1,87 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Your Friends</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/friends.css') }}">
-    <style>
-        /* Red dot for unread */
-        .unread-dot {
-            color: red;
-            font-size: 1.2em;
-            margin-left: 4px;
-            vertical-align: middle;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Your Friends - F1 Friends</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/friends.css') }}">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
-<body>
+<body class="bg-dark text-light" style="padding-top: 70px;">
 
-<!-- Navigation Bar -->
-<div class="navbar">
-    <div class="nav-links">
-        <a href="{{ url_for('main.dashboard') }}">🏁 Dashboard</a>
-        <a href="{{ url_for('main.profile') }}">👤 My Profile</a>
-        <a href="{{ url_for('main.chatbot') }}">🤖 AI Chatbot</a>
-        <a href="{{ url_for('main.logout') }}">🚪 Logout</a>
+  
+  <nav class="navbar navbar-expand-lg navbar-dark bg-danger fixed-top">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="{{ url_for('main.dashboard') }}">🏁 F1 Friends</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+        <ul class="navbar-nav">
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('main.dashboard') }}">Dashboard</a></li>
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('main.profile') }}">Profile</a></li>
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('main.chatbot') }}">Chatbot</a></li>
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('main.logout') }}">Logout</a></li>
+        </ul>
+      </div>
     </div>
-</div>
+  </nav>
 
-<!-- Friend List Section -->
-<div class="container">
-    <h1>👥 You're Following</h1>
+  
+  <div class="container mt-4">
+    <h1 class="mb-4 text-center text-danger">👥 You're Following</h1>
 
     {% if friends %}
-        <ul class="friend-list">
-            {% for friend in friends %}
-            <li>
-                <a href="{{ url_for('main.view_profile', user_id=friend.id) }}"
-                   class="username"
-                   data-username="{{ friend.username }}">
-                    {{ friend.username }}
-                    {% if unread_map[friend.username] %}
-                        <span class="unread-dot" title="New message">•</span>
-                    {% endif %}
-                </a>
-                <span class="email">({{ friend.email }})</span>
+      <ul class="list-group list-group-flush">
+        {% for friend in friends %}
+        <li class="list-group-item bg-dark text-light d-flex align-items-center justify-content-between">
+          <div>
+            <a href="{{ url_for('main.view_profile', user_id=friend.id) }}"
+               class="text-info fw-bold username"
+               data-username="{{ friend.username }}">
+              {{ friend.username }}
+              {% if unread_map[friend.username] %}
+                <span class="unread-dot" title="New message">•</span>
+              {% endif %}
+            </a>
+            <span class="text-muted ms-2">({{ friend.email }})</span>
 
-                {% if current_user.is_friends_with(friend) %}
-                    <span class="badge-friend">💬 Friends</span>
-                    <button class="btn-chat" onclick="openChatModal('{{ friend.username }}')">Chat</button>
-                {% endif %}
+            {% if current_user.is_friends_with(friend) %}
+              <span class="badge bg-success ms-2">💬 Friends</span>
+              <button class="btn btn-primary btn-sm ms-2" onclick="openChatModal('{{ friend.username }}')">Chat</button>
+            {% endif %}
+          </div>
 
-                <a class="btn-unfollow" href="{{ url_for('main.unfollow', user_id=friend.id) }}">Unfollow</a>
-            </li>
-            {% endfor %}
-        </ul>
+          <a class="btn btn-danger btn-sm" href="{{ url_for('main.unfollow', user_id=friend.id) }}">Unfollow</a>
+        </li>
+        {% endfor %}
+      </ul>
     {% else %}
-        <p class="empty">You are not following anyone yet.</p>
+      <p class="text-center text-muted">You are not following anyone yet.</p>
     {% endif %}
 
-    <p class="search-link">
-        <a href="{{ url_for('main.search') }}">🔍 Search for Users</a>
-    </p>
-</div>
-
-<!-- Chat Modal -->
-<div class="modal" id="chatModal" style="display:none;">
-    <div class="modal-content">
-        <span class="close" onclick="closeChatModal()">&times;</span>
-        <h2>Chat with <span id="chatUser"></span></h2>
-        <div class="chat-body" id="chatBody"></div>
-        <div class="chat-footer">
-            <input type="text" id="chatInput" placeholder="Type a message...">
-            <button id="sendBtn">Send</button>
-        </div>
+    <div class="text-center mt-3">
+      <a href="{{ url_for('main.search') }}" class="text-info">🔍 Search for Users</a>
     </div>
-</div>
+  </div>
 
-<!-- Scripts -->
-<script>
+  
+  <div class="modal" id="chatModal" style="display:none;">
+    <div class="modal-content">
+      <span class="close" onclick="closeChatModal()">&times;</span>
+      <h5 class="mb-3">Chat with <span id="chatUser"></span></h5>
+      <div class="chat-body" id="chatBody"></div>
+      <div class="chat-footer mt-2">
+        <input type="text" id="chatInput" placeholder="Type a message..." class="form-control me-2">
+        <button id="sendBtn" class="btn btn-danger">Send</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
     const CURRENT_USER_USERNAME = "{{ current_user.username }}";
-</script>
-<script src="{{ url_for('static', filename='js/friends.js') }}"></script>
-
+  </script>
+  <script src="{{ url_for('static', filename='js/friends.js') }}"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
