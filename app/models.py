@@ -18,7 +18,7 @@ class User(db.Model, UserMixin):
     predictions = db.relationship('Prediction', backref='user', lazy=True)
     blog_posts = db.relationship('BlogPost', backref='author', lazy=True)
 
-    # Following and followers (one-way relationship)
+    # Friend system
     following = db.relationship(
         'Friendship',
         foreign_keys='Friendship.follower_id',
@@ -34,13 +34,26 @@ class User(db.Model, UserMixin):
         cascade='all, delete-orphan'
     )
 
+    # ✅ Fixed: Use back_populates to avoid backref conflict
+    sent_messages = db.relationship(
+        'ChatMessage',
+        foreign_keys='ChatMessage.sender_id',
+        back_populates='sender',
+        lazy='dynamic'
+    )
+    received_messages = db.relationship(
+        'ChatMessage',
+        foreign_keys='ChatMessage.receiver_id',
+        back_populates='receiver',
+        lazy='dynamic'
+    )
+
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
 
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
 
-    # ---------- Friend System ----------
     def is_following(self, user):
         return self.following.filter_by(followed_id=user.id).first() is not None
 
@@ -51,18 +64,17 @@ class User(db.Model, UserMixin):
         return self.is_following(user) and self.is_followed_by(user)
 
     def get_following_list(self):
-        """返回所有我关注的用户（不要求互关）"""
         return [f.followed for f in self.following]
 
 # ---------- Prediction Model ----------
 class Prediction(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    race_name = db.Column(db.String(120))  # ✅ 保留
+    race_name = db.Column(db.String(120))
     predicted_winner = db.Column(db.String(80))
-    fastest_lap = db.Column(db.String(80))  # ✅ 新增
-    actual_winner = db.Column(db.String(80))  # ✅ 保留
-    points = db.Column(db.Integer)  # ✅ 保留
+    fastest_lap = db.Column(db.String(80))
+    actual_winner = db.Column(db.String(80))
+    points = db.Column(db.Integer)
 
 # ---------- BlogPost Model ----------
 class BlogPost(db.Model):
@@ -71,7 +83,7 @@ class BlogPost(db.Model):
     title = db.Column(db.String(100), nullable=False)
     content = db.Column(db.Text, nullable=False)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
-    is_public = db.Column(db.Boolean, default=True)  # True: visible to all; False: followers only
+    is_public = db.Column(db.Boolean, default=True)
 
 # ---------- Friendship Model ----------
 class Friendship(db.Model):
@@ -80,3 +92,17 @@ class Friendship(db.Model):
     followed_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
     __table_args__ = (db.UniqueConstraint('follower_id', 'followed_id', name='unique_friendship'),)
+
+# ---------- ChatMessage Model ----------
+class ChatMessage(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    sender_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    receiver_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    content = db.Column(db.Text, nullable=False)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow, index=True)
+
+    # ✅ Explicit relationships to avoid backref name collision
+    sender = db.relationship('User', foreign_keys=[sender_id], back_populates='sent_messages')
+    receiver = db.relationship('User', foreign_keys=[receiver_id], back_populates='received_messages')
+    
+    is_read = db.Column(db.Boolean, default=False)

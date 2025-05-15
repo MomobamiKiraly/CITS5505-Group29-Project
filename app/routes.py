@@ -27,8 +27,19 @@ def home():
 @login_required
 def friends():
     following = current_user.get_following_list()
-    return render_template('friends.html', friends=following)
 
+    from app.models import ChatMessage
+    unread_map = {}
+
+    for friend in following:
+        has_unread = ChatMessage.query.filter_by(
+            sender_id=friend.id,
+            receiver_id=current_user.id,
+            is_read=False
+        ).first() is not None
+        unread_map[friend.username] = has_unread
+
+    return render_template('friends.html', friends=following, unread_map=unread_map)
 # ---------- Login ----------
 @main.route('/login', methods=['GET', 'POST'])
 def login():
@@ -539,3 +550,64 @@ def logout():
     session.clear()
     flash('You have been logged out.', 'info')
     return redirect(url_for('main.login'))
+
+# ---------- Chat API ----------
+from app.models import ChatMessage
+from flask import request, jsonify
+from flask_login import current_user, login_required
+from app import csrf  
+
+@main.route('/send_message', methods=['POST'])
+@csrf.exempt 
+@login_required
+def send_message():
+    data = request.get_json()
+    receiver_username = data.get('receiver')
+    content = data.get('message')
+
+    receiver = User.query.filter_by(username=receiver_username).first()
+    if not receiver:
+        return jsonify({'status': 'error', 'message': 'User not found'}), 404
+    if not current_user.is_friends_with(receiver):
+        return jsonify({'status': 'error', 'message': 'You can only chat with mutual friends'}), 403
+
+    message = ChatMessage(
+        sender_id=current_user.id,
+        receiver_id=receiver.id,
+        content=content
+    )
+    db.session.add(message)
+    db.session.commit()
+    return jsonify({'status': 'success'})
+
+# ---------- Get Messages ----------
+@main.route('/get_messages/<username>', methods=['GET'])
+@login_required
+def get_messages(username):
+    other_user = User.query.filter_by(username=username).first()
+    if not other_user:
+        return jsonify([])
+
+
+    ChatMessage.query.filter_by(
+        sender_id=other_user.id,
+        receiver_id=current_user.id,
+        is_read=False
+    ).update({ChatMessage.is_read: True})
+    db.session.commit()
+
+    
+    messages = ChatMessage.query.filter(
+        ((ChatMessage.sender_id == current_user.id) & (ChatMessage.receiver_id == other_user.id)) |
+        ((ChatMessage.sender_id == other_user.id) & (ChatMessage.receiver_id == current_user.id))
+    ).order_by(ChatMessage.timestamp).all()
+
+    return jsonify([
+        {
+            'from': m.sender.username,
+            'to': m.receiver.username,
+            'content': m.content,
+            'timestamp': m.timestamp.strftime('%Y-%m-%d %H:%M:%S')
+        }
+        for m in messages
+    ])

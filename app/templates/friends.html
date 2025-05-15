@@ -2,12 +2,22 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Your Friends</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/friends.css') }}">
-    <script src="{{ url_for('static', filename='js/friends.js') }}"></script>
+    <style>
+        /* Red dot for unread */
+        .unread-dot {
+            color: red;
+            font-size: 1.2em;
+            margin-left: 4px;
+            vertical-align: middle;
+        }
+    </style>
 </head>
 <body>
 
+<!-- Navigation Bar -->
 <div class="navbar">
     <div class="nav-links">
         <a href="{{ url_for('main.dashboard') }}">🏁 Dashboard</a>
@@ -17,28 +27,60 @@
     </div>
 </div>
 
+<!-- Friend List Section -->
 <div class="container">
     <h1>👥 You're Following</h1>
 
     {% if friends %}
         <ul class="friend-list">
-        {% for friend in friends %}
+            {% for friend in friends %}
             <li>
-                <a href="{{ url_for('main.view_profile', user_id=friend.id) }}" class="username">{{ friend.username }}</a>
+                <a href="{{ url_for('main.view_profile', user_id=friend.id) }}"
+                   class="username"
+                   data-username="{{ friend.username }}">
+                    {{ friend.username }}
+                    {% if unread_map[friend.username] %}
+                        <span class="unread-dot" title="New message">•</span>
+                    {% endif %}
+                </a>
                 <span class="email">({{ friend.email }})</span>
+
                 {% if current_user.is_friends_with(friend) %}
-                    <span class="badge-friend">💬 好友</span>
+                    <span class="badge-friend">💬 Friends</span>
+                    <button class="btn-chat" onclick="openChatModal('{{ friend.username }}')">Chat</button>
                 {% endif %}
-                <a class="btn-unfollow" href="{{ url_for('main.unfollow', user_id=friend.id) }}">取消关注</a>
+
+                <a class="btn-unfollow" href="{{ url_for('main.unfollow', user_id=friend.id) }}">Unfollow</a>
             </li>
-        {% endfor %}
+            {% endfor %}
         </ul>
     {% else %}
         <p class="empty">You are not following anyone yet.</p>
     {% endif %}
 
-    <p class="search-link"><a href="{{ url_for('main.search') }}">🔍 Search for Users</a></p>
+    <p class="search-link">
+        <a href="{{ url_for('main.search') }}">🔍 Search for Users</a>
+    </p>
 </div>
+
+<!-- Chat Modal -->
+<div class="modal" id="chatModal" style="display:none;">
+    <div class="modal-content">
+        <span class="close" onclick="closeChatModal()">&times;</span>
+        <h2>Chat with <span id="chatUser"></span></h2>
+        <div class="chat-body" id="chatBody"></div>
+        <div class="chat-footer">
+            <input type="text" id="chatInput" placeholder="Type a message...">
+            <button id="sendBtn">Send</button>
+        </div>
+    </div>
+</div>
+
+<!-- Scripts -->
+<script>
+    const CURRENT_USER_USERNAME = "{{ current_user.username }}";
+</script>
+<script src="{{ url_for('static', filename='js/friends.js') }}"></script>
 
 </body>
 </html>
