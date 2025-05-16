@@ -1,26 +1,38 @@
+# Virtual environments
 venv311/
 venv/
 venv3*/
+
+# Python cache and compiled files
 __pycache__/
 *.py[cod]
 *.pyo
 *.pyd
+
+# SQLite databases
 *.db
 *.sqlite3
+
+# Flask instance directory
 instance/
+
+# Environment variables
 .env
 .env.*
+
+# Logs, temp, backup
+*.log
+*.tmp
+*.bak
+
+# IDE/editor files
 .vscode/
 .DS_Store
 Thumbs.db
-*.log
-*.tmp
-*.bak*.log
-*.tmp
-*.bak
+
+# Distribution / packaging
 *.zip
 *.tar.gz
 *.egg-info/
 dist/
 build/
-*.db
