@@ -3,40 +3,67 @@
 <head>
   <meta charset="UTF-8" />
   <title>🏁 Welcome to F1 Friends</title>
-  <!-- Favicon for the website -->
   <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}">
-  <!-- Responsive meta tag for mobile support -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <!-- Bootstrap CSS for layout and components -->
+  <!-- Bootstrap CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <!-- Custom CSS for the index (welcome) page -->
+  <!-- Custom CSS -->
   <link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}">
 </head>
 <body class="bg-dark text-light">
 
-  <!-- Navigation bar at the top of the page -->
+  <!-- Navbar -->
   <nav class="navbar navbar-expand-lg navbar-dark bg-danger">
     <div class="container-fluid">
-      <!-- Brand/logo for F1 Friends -->
-      <a class="navbar-brand" href="#">🏁 F1 Friends</a>
+      <a class="navbar-brand fw-bold" href="#">🏁 F1 Friends</a>
     </div>
   </nav>
 
-  <!-- Main welcome container -->
+  <!-- Welcome Section -->
   <div class="container text-center welcome-container">
     <h1 class="display-4 fw-bold text-danger mb-3">Welcome to F1 Friends</h1>
-    <p class="lead text-light mb-4">Predict races. Track your favorites. Chat with friends.</p>
+    <p class="lead mb-3 text-light">
+      Your social data analytics platform for Formula 1 fans.
+    </p>
+    <p class="mb-4 text-secondary">
+      Upload your predictions, view analysis with real-time F1 data, and share insights with your friends.
+    </p>
+
     <div class="d-grid gap-3 d-sm-flex justify-content-sm-center">
-      <!-- Login button -->
       <a href="{{ url_for('main.login') }}" class="btn btn-danger btn-lg px-4">Login</a>
-      <!-- Register button -->
       <a href="{{ url_for('main.register') }}" class="btn btn-outline-light btn-lg px-4">Register</a>
+    </div>
+
+    <!-- Help section -->
+    <div class="mt-5">
+      <button class="btn btn-outline-secondary btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#howItWorks" aria-expanded="false" aria-controls="howItWorks">
+        📖 How It Works
+      </button>
+
+      <div class="collapse mt-3 text-start" id="howItWorks">
+        <div class="card card-body bg-secondary text-light">
+          <h5>About F1 Friends</h5>
+          <ul>
+            <li><strong>Step 1 – Register:</strong> Create your account and select your favorite F1 team and driver.</li>
+            <li><strong>Step 2 – Upload:</strong> Submit your race predictions via the Upload tab.</li>
+            <li><strong>Step 3 – Analyze:</strong> View automated visualizations of current standings and your predictions.</li>
+            <li><strong>Step 4 – Share:</strong> Follow friends and choose to share your prediction data with them.</li>
+            <li><strong>Step 5 – Chat:</strong> Privately chat with mutual followers and discuss predictions together.</li>
+          </ul>
+          <p class="mt-2">
+            Your data is kept private by default. You choose what to share and with whom.
+          </p>
+          <p class="mb-0">
+            Built with Flask, Bootstrap, SQLite and Chart.js — designed for F1 fans and data lovers.
+          </p>
+        </div>
+      </div>
     </div>
   </div>
 
-  <!-- Bootstrap JS for interactive components -->
+  <!-- Bootstrap JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-  <!-- Custom JS for the index page -->
+  <!-- Custom JS -->
   <script src="{{ url_for('static', filename='js/index.js') }}"></script>
 </body>
 </html>
