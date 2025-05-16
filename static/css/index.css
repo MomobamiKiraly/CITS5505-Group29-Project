@@ -18,3 +18,52 @@ body {
   color: #e10600;                           /* Red text on hover */
   border-color: #fff;
 }
+
+
+/* Diagonal-left half background overlay */
+body::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-image: url('../images/F1_flag.jpg');
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+  opacity: 0.08;
+  z-index: 0;
+
+  /* Clip shape: left-top to right-bottom triangle */
+  clip-path: polygon(0 0, 100% 0, 0 100%);
+}
+
+/* Body styling with font and base color */
+body {
+  position: relative;
+  background-color: #0d0d0d;         /* Dark base */
+  font-family: 'Segoe UI', sans-serif;
+  margin: 0;
+  padding: 0;
+  z-index: 1;                        /* Above background layer */
+}
+
+/* Custom red navbar override */
+.navbar.bg-danger {
+  background-color: #e10600 !important;
+}
+
+/* Centered welcome container */
+.welcome-container {
+  position: relative;
+  margin-top: 15vh;
+  z-index: 2;  /* Above background */
+}
+
+/* Hover effect for Register button */
+.btn-outline-light:hover {
+  background-color: #fff;
+  color: #e10600;
+  border-color: #fff;
+}
