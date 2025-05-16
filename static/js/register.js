@@ -37,17 +37,11 @@ function selectTeam(el) {
     driversByTeam[teamName].forEach(driver => {
       const div = document.createElement('div');
       div.className = 'driver';
+      div.setAttribute('data-value', driver.name);
 
       const img = document.createElement('img');
       img.src = driver.image_url;
       img.alt = driver.name;
-      img.setAttribute('data-value', driver.name);
-
-      img.onclick = function () {
-        document.querySelectorAll('.driver').forEach(d => d.classList.remove('selected'));
-        div.classList.add('selected');
-        document.getElementById('favorite_driver').value = driver.name;
-      };
 
       const label = document.createElement('p');
       label.innerText = driver.name;
@@ -55,6 +49,13 @@ function selectTeam(el) {
       div.appendChild(img);
       div.appendChild(label);
       driverContainer.appendChild(div);
+
+      
+      div.onclick = function () {
+        document.querySelectorAll('.driver').forEach(d => d.classList.remove('selected'));
+        div.classList.add('selected');
+        document.getElementById('favorite_driver').value = driver.name;
+      };
     });
   }
 }
