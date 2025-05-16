@@ -1,21 +1,27 @@
 {% if user.id == current_user.id %}
+<!-- Show edit profile button if viewing own profile -->
 <div class="text-end mb-3">
   <a href="{{ url_for('main.edit_profile') }}" class="btn btn-outline-light btn-sm">Edit Profile</a>
 </div>
 {% endif %}
 
+<!-- Profile header section -->
 <div class="header">
+  <!-- User profile picture -->
   <img
     src="{{ url_for('static', filename='profile_pics/' + (user.profile_pic if user.profile_pic else 'default.jpg')) }}"
     alt="Profile Picture">
   <div class="header-info">
+    <!-- Username and email -->
     <h2>{{ user.username }}</h2>
     <p>Email: {{ user.email }}</p>
     {% if user.bio %}
+    <!-- User bio if available -->
     <p><em>{{ user.bio }}</em></p>
     {% endif %}
   </div>
   <div class="follow-btn">
+    <!-- Show follow/unfollow button if viewing another user's profile -->
     {% if user.id != current_user.id %}
       {% if is_following %}
         <a href="{{ url_for('main.unfollow', user_id=user.id) }}">Unfollow</a>
@@ -26,7 +32,7 @@
   </div>
 </div>
 
-<!-- Tabs -->
+<!-- Tabs for switching between sections -->
 <div class="toggle-group">
   <button class="toggle-btn" onclick="showSection('blog')">📝 Blog</button>
   <button class="toggle-btn" onclick="showSection('prediction')">📊 My Prediction</button>
@@ -37,6 +43,7 @@
 <!-- Blog Section -->
 <div id="blog" class="section-tab">
   {% if user.id == current_user.id %}
+  <!-- Blog post form for the current user -->
   <div class="blog-form">
     <form method="POST">
       <input type="text" name="title" placeholder="What's on your mind?" required>
@@ -51,17 +58,20 @@
   {% endif %}
 
   {% if posts %}
+    <!-- List of blog posts -->
     {% for post in posts %}
     <div class="blog-post">
       <h3>{{ post.title }}</h3>
       <small>{{ post.timestamp.strftime('%Y-%m-%d %H:%M') }}</small>
       <p>{{ post.content }}</p>
       {% if not post.is_public %}
+      <!-- Badge for private posts -->
       <span class="badge-private">Followers Only</span>
       {% endif %}
     </div>
     {% endfor %}
   {% else %}
+    <!-- Message if no blog posts -->
     <p class="text-muted">No blog posts yet.</p>
   {% endif %}
 </div>
@@ -70,6 +80,7 @@
 <div id="prediction" class="section-tab">
   <div class="blog-form">
     {% if upcoming_races %}
+    <!-- Table of upcoming races and predictions -->
     <div class="prediction-table-wrapper">
       <table class="prediction-table table table-bordered table-striped align-middle text-center">
         <thead class="table-dark">
@@ -93,6 +104,7 @@
             <td>{{ prediction.fastest_lap if prediction else "No prediction" }}</td>
             <td>
               {% if prediction %}
+              <!-- Share prediction with a friend -->
               <form method="POST" action="{{ url_for('main.share_prediction') }}" class="d-flex flex-column align-items-start">
                 <input type="hidden" name="race_name" value="{{ race.raceName }}">
                 <input type="hidden" name="predicted_winner" value="{{ prediction.predicted_winner }}">
@@ -118,8 +130,10 @@
       </table>
     </div>
     {% else %}
+    <!-- Message if no race schedule -->
     <p class="text-muted">Race schedule not available.</p>
     {% endif %}
+    <!-- Button to make a new prediction -->
     <div class="follow-btn mb-3" style="margin-top: 15px;">
       <a href="{{ url_for('main.upload') }}" class="btn btn-danger">Make Prediction</a>
     </div>
@@ -129,10 +143,12 @@
 <!-- Favorite Driver Section -->
 <div id="fav-driver" class="section-tab">
   {% if driver %}
+  <!-- Favorite driver info card -->
   <div class="driver-info-card-horizontal">
     <div class="driver-photo-block">
       <h4>{{ driver.givenName }} {{ driver.familyName }}</h4>
       {% if driver_image %}
+      <!-- Driver photo -->
       <img src="{{ driver_image }}" alt="{{ driver.givenName }} {{ driver.familyName }}" class="driver-photo-large">
       {% endif %}
     </div>
@@ -150,6 +166,7 @@
     </div>
   </div>
   {% else %}
+  <!-- Message if no favorite driver set -->
   <p>{{ user.favorite_driver or "No favorite driver set." }}</p>
   {% endif %}
 </div>
@@ -157,11 +174,13 @@
 <!-- Favorite Team Section -->
 <div id="fav-team" class="section-tab">
   {% if team %}
+  <!-- Favorite team info card -->
   <div class="team-info-card-horizontal">
     <div class="team-photo-block">
       <h4>{{ team.name | default(user.favorite_team) }}</h4>
       {% if team_image %}
       <div class="team-img-block">
+        <!-- Team logo -->
         <img src="{{ team_image }}" alt="{{ team.name }}" class="team-logo-large">
       </div>
       {% endif %}
@@ -179,6 +198,7 @@
     </div>
   </div>
   {% else %}
+  <!-- Message if no favorite team set -->
   <p>{{ user.favorite_team or "No favorite team set." }}</p>
   {% endif %}
 </div>

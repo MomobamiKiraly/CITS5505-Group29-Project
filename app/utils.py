@@ -162,10 +162,10 @@ def get_next_race_name():
         response = requests.get(url)
         response.raise_for_status()
         data = response.json()
-        print("API response received.")
+        #print("API response received.")
 
         races = data.get('MRData', {}).get('RaceTable', {}).get('Races', [])
-        print(f"Total races fetched: {len(races)}")
+        #print(f"Total races fetched: {len(races)}")
 
         now_utc = datetime.now(timezone.utc)
         upcoming = []
@@ -179,9 +179,10 @@ def get_next_race_name():
                 race_datetime = datetime.strptime(full_datetime_str, "%Y-%m-%dT%H:%M:%S")
                 race_datetime = race_datetime.replace(tzinfo=timezone.utc)
             except ValueError as ve:
-                print(f"Date parsing error for race {race.get('raceName')}: {ve}")
+                #print(f"Date parsing error for race {race.get('raceName')}: {ve}")
                 continue
 
+            # Only include races that are in the future
             if race_datetime >= now_utc:
                 upcoming.append({
                     "raceName": race.get("raceName"),
@@ -190,19 +191,20 @@ def get_next_race_name():
                     "date": race_datetime.strftime("%Y-%m-%d")
                 })
 
-        print(f"Upcoming races found: {len(upcoming)}")
+        #print(f"Upcoming races found: {len(upcoming)}")
         return upcoming[:5]
 
     except requests.exceptions.RequestException as e:
-        print(f"Request error: {e}")
+        #print(f"Request error: {e}")
         return []
     except Exception as e:
-        print(f"Unexpected error: {e}")
+        #print(f"Unexpected error: {e}")
         return []
 
 
 
 def fetch_team_details(team_name):
+    """Fetch detailed info and standings for a given team."""
     team_id = team_name.lower().replace(" ", "_")
     try:
         team_url = f"https://api.jolpi.ca/ergast/f1/constructors/{team_id}.json"
@@ -214,6 +216,7 @@ def fetch_team_details(team_name):
         team_info = team_data['MRData']['ConstructorTable']['Constructors'][0]
         standings_list = standings_data['MRData']['StandingsTable']['StandingsLists'][0]['ConstructorStandings']
 
+        # Find the team's stats in the standings list
         team_stats = next((t for t in standings_list if t['Constructor']['constructorId'] == team_id), None)
         if team_stats:
             team_info['position'] = team_stats['position']
@@ -224,6 +227,7 @@ def fetch_team_details(team_name):
     except (KeyError, IndexError):
         return None
 
+# Mapping from driver names to their API IDs
 DRIVER_ID_MAP = {
     "Max Verstappen": "max_verstappen",
     "Sergio Pérez": "perez",
@@ -248,6 +252,7 @@ DRIVER_ID_MAP = {
 }
 
 def fetch_driver_details(driver_name):
+    """Fetch detailed info and standings for a given driver."""
     driver_id = DRIVER_ID_MAP.get(driver_name)
     if not driver_id:
         return None  # Unrecognized driver
@@ -262,6 +267,7 @@ def fetch_driver_details(driver_name):
         driver_info = driver_data['MRData']['DriverTable']['Drivers'][0]
         standings_list = standings_data['MRData']['StandingsTable']['StandingsLists'][0]['DriverStandings']
 
+        # Find the driver's stats in the standings list
         driver_stats = next((d for d in standings_list if d['Driver']['driverId'] == driver_id), None)
         if driver_stats:
             driver_info['position'] = driver_stats['position']

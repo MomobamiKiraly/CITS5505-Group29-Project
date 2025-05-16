@@ -1,5 +1,6 @@
 /* Chatbot - Dark + Red theme */
 
+/* Set global font and background for the chatbot page */
 body {
   font-family: 'Segoe UI', sans-serif;
   background-color: #111;
@@ -8,11 +9,12 @@ body {
   padding: 0;
 }
 
-/* 统一红色导航栏 */
+/* Consistent red navbar styling */
 .navbar.bg-danger {
   background-color: #e10600 !important;
 }
 
+/* Main chatbot container centered on the page */
 .chatbot-container {
   position: fixed;
   top: 50%;
@@ -29,6 +31,7 @@ body {
   z-index: 9999;
 }
 
+/* Header section of the chatbot */
 .chatbot-header {
   background-color: #1a1a1a;
   color: #e00;
@@ -39,6 +42,7 @@ body {
   border-bottom: 2px solid #e00;
 }
 
+/* Message area for chat history */
 .chatbot-messages {
   flex: 1;
   padding: 20px;
@@ -50,6 +54,7 @@ body {
   background-color: #181818;
 }
 
+/* Individual message bubble */
 .chatbot-message {
   padding: 12px 16px;
   border-radius: 12px;
@@ -58,18 +63,21 @@ body {
   word-wrap: break-word;
 }
 
+/* User message styling (right side, red background) */
 .user {
   background-color: #e00;
   color: white;
   align-self: flex-end;
 }
 
+/* Bot message styling (left side, dark background) */
 .bot {
   background-color: #333;
   color: #eee;
   align-self: flex-start;
 }
 
+/* Input area at the bottom of the chatbot */
 .chatbot-input {
   display: flex;
   border-top: 1px solid #333;
@@ -77,6 +85,7 @@ body {
   background-color: #1a1a1a;
 }
 
+/* Text input field styling */
 .chatbot-input input {
   flex: 1;
   padding: 12px;
@@ -88,6 +97,7 @@ body {
   margin-right: 10px;
 }
 
+/* Send button styling */
 .chatbot-input button {
   padding: 12px 18px;
   font-size: 16px;
@@ -99,6 +109,7 @@ body {
   transition: background-color 0.2s ease-in-out;
 }
 
+/* Send button hover effect */
 .chatbot-input button:hover {
   background-color: #cc0000;
 }

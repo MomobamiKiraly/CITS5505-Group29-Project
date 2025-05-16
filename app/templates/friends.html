@@ -4,18 +4,23 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Your Friends - F1 Friends</title>
+  <!-- Link to custom CSS for friends page -->
   <link rel="stylesheet" href="{{ url_for('static', filename='css/friends.css') }}">
+  <!-- Link to Bootstrap CSS for layout and components -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body class="bg-dark text-light" style="padding-top: 70px;">
 
-  
+  <!-- Navigation bar at the top of the page -->
   <nav class="navbar navbar-expand-lg navbar-dark bg-danger fixed-top">
     <div class="container-fluid">
+      <!-- Brand/logo linking to dashboard -->
       <a class="navbar-brand" href="{{ url_for('main.dashboard') }}">🏁 F1 Friends</a>
+      <!-- Button for collapsing navbar on small screens -->
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
         <span class="navbar-toggler-icon"></span>
       </button>
+      <!-- Navigation links -->
       <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
         <ul class="navbar-nav">
           <li class="nav-item"><a class="nav-link" href="{{ url_for('main.dashboard') }}">Dashboard</a></li>
@@ -27,45 +32,52 @@
     </div>
   </nav>
 
-  
+  <!-- Main container for friends list -->
   <div class="container mt-4">
     <h1 class="mb-4 text-center text-danger">👥 You're Following</h1>
 
     {% if friends %}
+      <!-- List of friends the user is following -->
       <ul class="list-group list-group-flush">
         {% for friend in friends %}
         <li class="list-group-item bg-dark text-light d-flex align-items-center justify-content-between">
           <div>
+            <!-- Friend's username (link to their profile) -->
             <a href="{{ url_for('main.view_profile', user_id=friend.id) }}"
                class="text-info fw-bold username"
                data-username="{{ friend.username }}">
               {{ friend.username }}
               {% if unread_map[friend.username] %}
+                <!-- Show unread message dot if there are new messages -->
                 <span class="unread-dot" title="New message">•</span>
               {% endif %}
             </a>
+            <!-- Friend's email -->
             <span class="text-muted ms-2">({{ friend.email }})</span>
 
             {% if current_user.is_friends_with(friend) %}
+              <!-- Show badge and chat button if you are friends -->
               <span class="badge bg-success ms-2">💬 Friends</span>
               <button class="btn btn-primary btn-sm ms-2" onclick="openChatModal('{{ friend.username }}')">Chat</button>
             {% endif %}
           </div>
-
+          <!-- Unfollow button -->
           <a class="btn btn-danger btn-sm" href="{{ url_for('main.unfollow', user_id=friend.id) }}">Unfollow</a>
         </li>
         {% endfor %}
       </ul>
     {% else %}
+      <!-- Message if user is not following anyone -->
       <p class="text-center text-muted">You are not following anyone yet.</p>
     {% endif %}
 
+    <!-- Link to search for more users -->
     <div class="text-center mt-3">
       <a href="{{ url_for('main.search') }}" class="text-info">🔍 Search for Users</a>
     </div>
   </div>
 
-  
+  <!-- Modal for chatting with a friend -->
   <div class="modal" id="chatModal" style="display:none;">
     <div class="modal-content">
       <span class="close" onclick="closeChatModal()">&times;</span>
@@ -78,10 +90,13 @@
     </div>
   </div>
 
+  <!-- Pass current user's username to JavaScript -->
   <script>
     const CURRENT_USER_USERNAME = "{{ current_user.username }}";
   </script>
+  <!-- Custom JS for friends page logic -->
   <script src="{{ url_for('static', filename='js/friends.js') }}"></script>
+  <!-- Bootstrap JS for interactive components -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

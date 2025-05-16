@@ -3,18 +3,23 @@
 <head>
   <meta charset="UTF-8">
   <title>🏁 F1 Friends | Dashboard</title>
+  <!-- Link to custom CSS for dashboard styling -->
   <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+  <!-- Link to Bootstrap CSS for layout and components -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body class="bg-dark text-light" style="padding-top: 70px;">
 
-  
+  <!-- Navigation bar at the top of the page -->
   <nav class="navbar navbar-expand-lg navbar-dark bg-danger fixed-top">
     <div class="container-fluid">
+      <!-- Brand/logo linking to dashboard -->
       <a class="navbar-brand" href="{{ url_for('main.dashboard') }}">🏁 F1 Friends</a>
+      <!-- Button for collapsing navbar on small screens -->
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
         <span class="navbar-toggler-icon"></span>
       </button>
+      <!-- Navigation links -->
       <div class="collapse navbar-collapse" id="navbarNav">
         <ul class="navbar-nav ms-auto">
           <li class="nav-item"><a class="nav-link" href="{{ url_for('main.chatbot') }}">Chatbot</a></li>
@@ -25,20 +30,22 @@
     </div>
   </nav>
 
-  
+  <!-- Main dashboard container -->
   <div class="container mt-4">
     <div class="row g-4">
 
-      <!-- Team Card -->
+      <!-- Team Card: Shows user's favorite F1 team info -->
       <div class="col-md-6 col-lg-4">
         <div class="card team-card h-100">
           <div class="card-body">
             <h2 class="card-title text-center">Your F1 Team</h2>
             {% if favorite_team and team_info %}
             <div class="text-center">
+              <!-- Team logo -->
               <img src="{{ team_logo }}" alt="{{ favorite_team }} Logo" class="team-logo mb-2">
               <h5 class="team-name">{{ favorite_team }}</h5>
               <p class="mt-3">Track Your Team's Performance</p>
+              <!-- Team stats -->
               <ul class="list-unstyled">
                 <li><strong>Position:</strong> {{ team_info.position }}</li>
                 <li><strong>Points:</strong> {{ team_info.points }}</li>
@@ -46,21 +53,24 @@
               </ul>
             </div>
             {% else %}
+            <!-- Message if no favorite team is selected -->
             <p class="text-center">No favorite team selected.</p>
             {% endif %}
           </div>
         </div>
       </div>
 
-      <!-- Top 5 Drivers -->
+      <!-- Top 5 Drivers Card -->
       <div class="col-md-6 col-lg-4">
         <div class="card h-100">
           <div class="card-body">
             <h2 class="card-title text-center">Top 5 Drivers</h2>
             <ul class="list-group list-group-flush">
               {% for driver in standings[:5] %}
+              <!-- List each top 5 driver and their points -->
               <li class="list-group-item bg-dark text-light">{{ driver.driver.name }} — {{ driver.points }} pts</li>
               {% else %}
+              <!-- Message if no driver data is found -->
               <li class="list-group-item bg-dark text-muted">No driver data found.</li>
               {% endfor %}
             </ul>
@@ -68,37 +78,41 @@
         </div>
       </div>
 
-      <!-- Chart.js Chart -->
+      <!-- Chart.js Chart Card: Shows driver standings chart -->
       <div class="col-md-6 col-lg-4">
         <div class="card h-100">
           <div class="card-body">
             <h2 class="card-title text-center">Driver Standings Chart</h2>
+            <!-- Chart.js canvas for dynamic chart -->
             <canvas id="standingsChart"></canvas>
           </div>
         </div>
       </div>
 
-      <!-- Static Chart Image -->
+      <!-- Static Chart Image Card -->
       <div class="col-md-6 col-lg-6">
         <div class="card h-100">
           <div class="card-body text-center">
             <h2 class="card-title">Static Standings Chart</h2>
+            <!-- Static image of standings chart -->
             <img src="{{ url_for('static', filename='charts/standings.png') }}" alt="Static Chart" class="standings-img">
           </div>
         </div>
       </div>
 
-      <!-- Next Race -->
+      <!-- Next Race Card -->
       <div class="col-md-6 col-lg-6">
         <div class="card h-100">
           <div class="card-body">
             <h2 class="card-title text-center">Next Race</h2>
             {% if next_race %}
+            <!-- Show next race info -->
             <p class="text-center">
               <strong>{{ next_race.race.raceName }}</strong><br>
               {{ next_race.race.date }} — {{ next_race.race.circuit.location.locality }}
             </p>
             {% else %}
+            <!-- Message if no upcoming race data -->
             <p class="text-center text-muted">No upcoming race data available.</p>
             {% endif %}
           </div>
@@ -108,13 +122,17 @@
     </div>
   </div>
 
-  <!-- Scripts -->
+  <!-- Scripts for dashboard functionality -->
   <script>
+  // Data for Chart.js: driver names and points
   const driverNames = {{ standings[:5]|map(attribute='driver.name')|list|tojson | safe }};
   const driverPoints = {{ standings[:5]|map(attribute='points')|list|tojson | safe }};
   </script>
+  <!-- Custom JS for dashboard charts and logic -->
   <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+  <!-- Bootstrap JS for interactive components -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- Chart.js library for charts -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </body>
 </html>
