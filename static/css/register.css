@@ -5,12 +5,14 @@ body {
 }
 
 .register-container {
-  background-color: rgba(85, 81, 81, 0.75); /* Semi-transparent background */
+  background-color: rgba(85, 81, 81, 0.75);
   padding: 30px;
   margin: 60px auto;
   max-width: 600px;
   border-radius: 10px;
-  box-shadow: 0 0 15px #e10600;             /* Red glow */
+  box-shadow: 0 0 15px #e10600;
+  position: relative; /* add */
+  z-index: 2;          /* add */
 }
 
 .form-control {
@@ -88,4 +90,51 @@ body {
   margin-top: 5px;
   font-size: 0.9rem;
   color: white;
+}
+
+/* Diagonal-left half background overlay */
+body::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-image: url('../images/F1_flag.jpg');
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+  opacity: 0.08;
+  z-index: 0;
+  clip-path: polygon(0 0, 100% 0, 0 100%);
+  filter: blur(2px); /* NEW: slightly blur the flag texture */
+}
+
+/* Body styling with font and base color */
+body {
+  position: relative;
+  background-color: #0d0d0d;         /* Dark base */
+  font-family: 'Segoe UI', sans-serif;
+  margin: 0;
+  padding: 0;
+  z-index: 1;                        /* Above background layer */
+}
+
+/* Custom red navbar override */
+.navbar.bg-danger {
+  background-color: #e10600 !important;
+}
+
+/* Centered welcome container */
+.welcome-container {
+  position: relative;
+  margin-top: 15vh;
+  z-index: 2;  /* Above background */
+}
+
+/* Hover effect for Register button */
+.btn-outline-light:hover {
+  background-color: #fff;
+  color: #e10600;
+  border-color: #fff;
 }
