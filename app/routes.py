@@ -348,6 +348,7 @@ def profile():
                 driver_image = d['image_url']
                 break
 
+    following = current_user.get_following_list()  # or current_user.following if relationship is defined
     return render_template(
         'profile.html',
         user=user,
@@ -358,7 +359,8 @@ def profile():
         driver_image=driver_image,
         upcoming_races=upcoming_races,
         user_predictions=user_predictions,
-        is_following=None
+        is_following=None,
+        following=following
     )
 # ---------- Any User Profile + Blog ----------
 @main.route('/profile/<int:user_id>', methods=['GET', 'POST'])
@@ -634,3 +636,49 @@ def get_messages(username):
         }
         for m in messages
     ])
+
+
+# ---------- Share Prediction ----------
+from app.models import ChatMessage  # Make sure this is imported
+from app import csrf  # make sure this is imported
+
+@main.route('/share_prediction', methods=['POST'])
+@csrf.exempt  # <-- ADD THIS
+@login_required
+def share_prediction():
+    friend_username = request.form.get('friend_username')
+    race_name = request.form.get('race_name')
+    predicted_winner = request.form.get('predicted_winner')
+    fastest_lap = request.form.get('fastest_lap')
+
+    message = (
+        f"My prediction for {race_name}:\n"
+        f"🏁 Predicted Winner: {predicted_winner}\n"
+        f"⚡ Fastest Lap: {fastest_lap}"
+    )
+
+    friend = User.query.filter_by(username=friend_username).first_or_404()
+
+    # ✅ Make sure user is allowed to send messages to this friend
+    if current_user.is_friends_with(friend):
+        chat = ChatMessage(
+            sender_id=current_user.id,
+            receiver_id=friend.id,
+            content=message
+        )
+        db.session.add(chat)
+        db.session.commit()
+        flash(f"Shared your prediction with {friend_username}!", "success")
+    else:
+        flash("You can only share predictions with users you're following.", "danger")
+
+    return redirect(url_for('main.profile'))
+
+@main.route('/debug/messages')
+@login_required
+def debug_messages():
+    messages = ChatMessage.query.all()
+    return "<br>".join(
+        f"{m.timestamp.strftime('%Y-%m-%d %H:%M:%S')} — From User #{m.sender_id} to User #{m.receiver_id}: {m.content}"
+        for m in messages
+    )
