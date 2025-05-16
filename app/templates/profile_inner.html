@@ -79,6 +79,7 @@
             <th>Location</th>
             <th>Predicted Winner</th>
             <th>Fastest Lap</th>
+            <th>Share</th>
           </tr>
         </thead>
         <tbody>
@@ -90,6 +91,27 @@
             <td>{{ race.location }}</td>
             <td>{{ prediction.predicted_winner if prediction else "No prediction" }}</td>
             <td>{{ prediction.fastest_lap if prediction else "No prediction" }}</td>
+            <td>
+              {% if prediction %}
+              <form method="POST" action="{{ url_for('main.share_prediction') }}" class="d-flex flex-column align-items-start">
+                <input type="hidden" name="race_name" value="{{ race.raceName }}">
+                <input type="hidden" name="predicted_winner" value="{{ prediction.predicted_winner }}">
+                <input type="hidden" name="fastest_lap" value="{{ prediction.fastest_lap }}">
+              
+                <select name="friend_username" class="form-select form-select-sm mb-1" required>
+                  <option value="" disabled selected>Share with...</option>
+                  {% for friend in following %}
+                    <option value="{{ friend.username }}">{{ friend.username }}</option>
+                  {% endfor %}
+                </select>
+              
+                <button type="submit" class="btn btn-sm btn-outline-primary">Share</button>
+              </form>
+              
+              {% else %}
+                <span class="text-muted">—</span>
+              {% endif %}
+            </td>
           </tr>
           {% endfor %}
         </tbody>
