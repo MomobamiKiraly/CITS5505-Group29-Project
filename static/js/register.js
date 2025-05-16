@@ -1,6 +1,7 @@
 let current = 0;
 const steps = document.querySelectorAll('.step');
 
+// Go to next step in registration
 function nextStep() {
   if (current < steps.length - 1) {
     steps[current].classList.remove('active');
@@ -9,6 +10,7 @@ function nextStep() {
   }
 }
 
+// Go to previous step in registration
 function prevStep() {
   if (current > 0) {
     steps[current].classList.remove('active');
@@ -17,10 +19,12 @@ function prevStep() {
   }
 }
 
+// Log form submission
 document.querySelector('form').addEventListener('submit', (e) => {
   console.log("Form submitted.");
 });
 
+// Select a team and show drivers for that team
 function selectTeam(el) {
   document.querySelectorAll('.team').forEach(e => e.classList.remove('selected'));
   el.classList.add('selected');
@@ -50,7 +54,7 @@ function selectTeam(el) {
       div.appendChild(label);
       driverContainer.appendChild(div);
 
-      
+      // Select a driver
       div.onclick = function () {
         document.querySelectorAll('.driver').forEach(d => d.classList.remove('selected'));
         div.classList.add('selected');

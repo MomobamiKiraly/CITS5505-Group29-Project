@@ -2,6 +2,7 @@ document.addEventListener('DOMContentLoaded', function () {
   const teamSelect = document.getElementById('favorite_team');
   const driverSelect = document.getElementById('favorite_driver');
 
+  // Populate driver options based on selected team
   function populateDrivers(teamName) {
     const drivers = driversByTeam[teamName] || [];
     driverSelect.innerHTML = '';
@@ -17,12 +18,12 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  
+  // If a team is already selected, populate drivers
   if (selectedTeam) {
     populateDrivers(selectedTeam);
   }
 
-  
+  // Update drivers when team selection changes
   teamSelect.addEventListener('change', function () {
     populateDrivers(this.value);
   });

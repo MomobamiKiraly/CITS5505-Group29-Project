@@ -1,6 +1,6 @@
 body {
     font-family: 'Segoe UI', sans-serif;
-    background-color: #111;
+    background-color: #111;      /* Dark background */
     color: #eee;
     margin: 0;
     padding: 0;
@@ -30,7 +30,7 @@ body {
   margin: 10px 0;
   padding: 15px;
   border-radius: 8px;
-  border: 2px solid #e10600;
+  border: 2px solid #e10600;    /* Red border for result items */
 }
 
 .username {

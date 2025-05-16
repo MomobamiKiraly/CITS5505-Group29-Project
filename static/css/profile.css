@@ -1,6 +1,6 @@
 body {
   font-family: 'Segoe UI', sans-serif;
-  background-color: #111;
+  background-color: #111;      /* Dark background */
   color: #eee;
   margin: 0;
   padding: 0;
@@ -22,7 +22,7 @@ body {
 }
 
 .header img {
-  border-radius: 50%;
+  border-radius: 50%;          /* Circular avatar */
   width: 80px;
   height: 80px;
   margin-right: 20px;

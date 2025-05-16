@@ -4,6 +4,7 @@ document.addEventListener("DOMContentLoaded", function () {
   const sendBtn = document.getElementById("sendBtn");
   const chatUserEl = document.getElementById("chatUser");
 
+  // Send message to server and update chat UI
   function sendMessage() {
     const message = chatInput.value.trim();
     const receiver = chatUserEl.textContent;
@@ -44,6 +45,7 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 });
 
+// Open chat modal and load messages
 function openChatModal(username) {
   const chatUserEl = document.getElementById("chatUser");
   const chatModalEl = document.getElementById("chatModal");
@@ -81,10 +83,12 @@ function openChatModal(username) {
   chatInput.focus();
 }
 
+// Close chat modal
 function closeChatModal() {
   document.getElementById("chatModal").style.display = "none";
 }
 
+// Scroll chat to bottom
 function scrollToBottom(container) {
   container.scrollTop = container.scrollHeight;
 }

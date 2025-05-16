@@ -1,28 +1,34 @@
+/* Set the background color, text color, and font for the body */
 body {
   background-color: #0d0d0d;
   color: #eee;
   font-family: 'Segoe UI', sans-serif;
 }
 
+/* Style the navbar with a custom red background */
 .navbar.bg-danger {
   background-color: #e10600 !important;
 }
 
+/* Center the form and set a maximum width */
 .form-box {
   max-width: 600px;
   margin: auto;
 }
 
+/* Style input fields and select boxes with dark backgrounds and white text */
 .form-control, .form-select {
   background-color: #1c1c1c;
   border: 1px solid #555;
   color: white;
 }
 
+/* Set placeholder text color for input fields */
 .form-control::placeholder {
   color: #aaa;
 }
 
+/* Highlight input fields and select boxes on focus */
 .form-control:focus, .form-select:focus {
   background-color: #222;
   color: white;
@@ -30,11 +36,13 @@ body {
   box-shadow: none;
 }
 
+/* Style the danger button with a custom red color */
 .btn-danger {
   background-color: #e10600;
   border: none;
 }
 
+/* Darken the danger button on hover */
 .btn-danger:hover {
   background-color: #c00000;
 }

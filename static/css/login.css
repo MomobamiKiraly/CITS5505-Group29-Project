@@ -2,18 +2,18 @@ body {
   margin: 0;
   padding: 0;
   font-family: 'Segoe UI', sans-serif;
-  background: url('../images/login_background.jpg') no-repeat center center fixed;
+  background: url('../images/login_background.jpg') no-repeat center center fixed; /* Background image */
   background-size: cover;
   color: white;
 }
 
 .login-container {
-  background-color: rgba(0, 0, 0, 0.7);
+  background-color: rgba(0, 0, 0, 0.7); /* Semi-transparent background */
   width: 350px;
   margin: 100px auto;
   padding: 30px;
   border-radius: 10px;
-  box-shadow: 0 0 15px #e10600;
+  box-shadow: 0 0 15px #e10600;         /* Red glow */
 }
 
 .form-label {

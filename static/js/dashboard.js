@@ -5,6 +5,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const ctx = canvas.getContext("2d");
   if (!ctx || !driverNames || !driverPoints) return;
 
+  // Render bar chart for top 5 F1 drivers
   new Chart(ctx, {
     type: "bar",
     data: {
