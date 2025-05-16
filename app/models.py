@@ -65,6 +65,9 @@ class User(db.Model, UserMixin):
 
     def get_following_list(self):
         return [f.followed for f in self.following]
+    
+    def __repr__(self):
+        return f"<User {self.username}>"
 
 # ---------- Prediction Model ----------
 class Prediction(db.Model):
