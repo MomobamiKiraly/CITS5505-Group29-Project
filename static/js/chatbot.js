@@ -4,16 +4,19 @@ document.getElementById('chat-form').addEventListener('submit', function(e) {
   const userInput = document.getElementById('user-input').value.trim();
   if (!userInput) return;
 
+  // Show user message
   const userMessage = document.createElement('div');
   userMessage.className = 'chatbot-message user';
   userMessage.textContent = "You: " + userInput;
   document.getElementById('messages').appendChild(userMessage);
 
+  // Show bot thinking message
   const botReply = document.createElement('div');
   botReply.className = 'chatbot-message bot';
   botReply.textContent = "Bot: (thinking...)";
   document.getElementById('messages').appendChild(botReply);
 
+  // Send user input to server
   fetch('/chat', {
     method: 'POST',
     headers: {

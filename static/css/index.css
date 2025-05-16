@@ -1,20 +1,20 @@
 body {
-  background-color: #0d0d0d;
-  font-family: 'Segoe UI', sans-serif;
+  background-color: #0d0d0d;                /* Dark background */
+  font-family: 'Segoe UI', sans-serif;      /* Modern font */
   margin: 0;
   padding: 0;
 }
 
 .navbar.bg-danger {
-  background-color: #e10600 !important;
+  background-color: #e10600 !important;     /* Custom red navbar */
 }
 
 .welcome-container {
-  margin-top: 15vh;
+  margin-top: 15vh;                        /* Center content vertically */
 }
 
 .btn-outline-light:hover {
-  background-color: #fff;
-  color: #e10600;
+  background-color: #fff;                   /* White background on hover */
+  color: #e10600;                           /* Red text on hover */
   border-color: #fff;
 }

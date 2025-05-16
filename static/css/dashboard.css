@@ -4,12 +4,12 @@ body {
   font-family: 'Helvetica Neue', sans-serif;
 }
 
-/* 深红导航栏 */
+/* Deep red navbar styling */
 .navbar.bg-danger {
   background-color: #e10600 !important;
 }
 
-/* 卡片设计 */
+/* Card component design for dashboard sections */
 .card {
   background-color: #1a1a1a;
   border-radius: 10px;
@@ -17,12 +17,14 @@ body {
   box-shadow: 0 2px 8px rgba(255, 255, 255, 0.05);
 }
 
+/* Card title styling */
 .card-title {
   color: #ff4d4d;
   font-size: 1.5rem;
   margin-bottom: 1rem;
 }
 
+/* Team logo image styling */
 .team-logo {
   width: 80px;
   height: 80px;
@@ -31,11 +33,13 @@ body {
   padding: 8px;
 }
 
+/* Team name text styling */
 .team-name {
   color: #e10600;
   font-weight: bold;
 }
 
+/* Standings chart image styling */
 .standings-img {
   width: 100%;
   max-width: 500px;
@@ -44,6 +48,7 @@ body {
   box-shadow: 0 0 12px rgba(0, 0, 0, 0.2);
 }
 
+/* Chart canvas styling */
 canvas {
   width: 100% !important;
   height: 300px !important;
@@ -52,6 +57,7 @@ canvas {
   margin-top: 15px;
 }
 
+/* Remove border from list group items */
 .list-group-item {
   border: none;
 }

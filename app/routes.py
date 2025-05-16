@@ -15,12 +15,13 @@ import matplotlib.pyplot as plt
 from app.utils import fetch_teams, get_drivers_by_team, get_next_race_name,fetch_driver_details,fetch_team_details
 from flask_wtf.csrf import CSRFProtect
 
-
+# Create a Flask Blueprint for main routes
 main = Blueprint('main', __name__)
 
 # ---------- Home ----------
 @main.route('/')
 def index():
+    # Redirect authenticated users to dashboard, otherwise show index page
     if current_user.is_authenticated:
         return redirect(url_for('main.dashboard'))
     return render_template('index.html')
@@ -29,11 +30,13 @@ def index():
 @main.route('/friends')
 @login_required
 def friends():
+    # Get the list of users the current user is following
     following = current_user.get_following_list()
 
     from app.models import ChatMessage
     unread_map = {}
 
+    # Check for unread messages from each friend
     for friend in following:
         has_unread = ChatMessage.query.filter_by(
             sender_id=friend.id,
@@ -43,9 +46,11 @@ def friends():
         unread_map[friend.username] = has_unread
 
     return render_template('friends.html', friends=following, unread_map=unread_map)
+
 # ---------- Login ----------
 @main.route('/login', methods=['GET', 'POST'])
 def login():
+    # Redirect if already logged in
     if current_user.is_authenticated:
         return redirect(url_for('main.dashboard'))
 
@@ -71,12 +76,13 @@ from app.utils import fetch_teams, get_drivers_by_team
 
 @main.route('/register', methods=['GET', 'POST'])
 def register():
+    # Registration form logic
     form = RegisterForm()
     teams = fetch_teams()
     drivers_by_team = get_drivers_by_team()
 
     if form.validate_on_submit():
-        
+        # Check if username or email already exists
         existing_user = User.query.filter(
             (User.username == form.username.data) | (User.email == form.email.data)
         ).first()
@@ -85,6 +91,7 @@ def register():
             flash('Username or email already exists.', 'danger')
             return redirect(url_for('main.register'))
 
+        # Create new user
         new_user = User(
             username=form.username.data,
             email=form.email.data,
@@ -107,15 +114,15 @@ def register():
         drivers_by_team=drivers_by_team
     )
 
-
 # ---------- Dashboard ----------
 def generate_standings_chart(standings):
+    # Generate a standings chart image using matplotlib
     import matplotlib.pyplot as plt
     import os
     from flask import current_app
 
-    print("📊 generate_standings_chart called")
-    print("Driver names:", [item['driver']['name'] for item in standings[:5]])
+    #print("📊 generate_standings_chart called")
+    #print("Driver names:", [item['driver']['name'] for item in standings[:5]])
 
     names = [item['driver']['name'] for item in standings[:5]]
     points = [item['points'] for item in standings[:5]]
@@ -131,11 +138,10 @@ def generate_standings_chart(standings):
     ax.set_xticks([])
     ax.set_title("F1 Driver Standings")
 
-    
     chart_dir = os.path.join(os.path.dirname(current_app.root_path), 'static', 'charts')
     os.makedirs(chart_dir, exist_ok=True)
     chart_path = os.path.join(chart_dir, 'standings.png')
-    print("✅ Saving chart to:", chart_path)
+    #print("✅ Saving chart to:", chart_path)
 
     plt.savefig(chart_path, bbox_inches='tight')
     plt.close()
@@ -145,6 +151,7 @@ def generate_standings_chart(standings):
 @main.route('/dashboard')
 @login_required
 def dashboard():
+    # Dashboard page logic: fetch standings, next race, and team info
     try:
         standings_url = "http://api.jolpi.ca/ergast/f1/current/driverStandings.json"
         next_race_url = "http://api.jolpi.ca/ergast/f1/current/next.json"
@@ -187,7 +194,7 @@ def dashboard():
             flash("Unable to fetch F1 data.", "danger")
             standings, next_race_parsed, chart_path = [], None, None
 
-        # Fetch favorite team info
+        # Fetch favorite team info and logo
         favorite_team = current_user.favorite_team
         team_info = None
         team_logo = None
@@ -213,12 +220,12 @@ def dashboard():
         favorite_team=favorite_team
     )
 
-
 # ---------- Forgot Password ----------
 from app.forms import ForgotPasswordForm
 
 @main.route('/forgot-password', methods=['GET', 'POST'])
 def forgot_password():
+    # Handle forgot password form
     form = ForgotPasswordForm()
 
     if form.validate_on_submit():
@@ -306,9 +313,10 @@ def edit_profile():
 @csrf.exempt
 @login_required
 def profile():
+    # Show and handle blog posts for the current user profile
     user = User.query.get_or_404(session['user_id'])
 
-    # --- Handle blog post submission ---
+    # Handle blog post submission
     if request.method == 'POST':
         title = request.form['title']
         content = request.form['content']
@@ -326,13 +334,12 @@ def profile():
         flash("Blog post published!", "success")
         return redirect(url_for('main.profile'))
 
-    # --- Prepare page content ---
+    # Prepare page content
     posts = BlogPost.query.filter_by(author_id=user.id).all()
     
-    # ✨ Use utils functions
+    # Fetch team and driver info
     team_info = fetch_team_details(user.favorite_team) if user.favorite_team else None
     driver_info = fetch_driver_details(user.favorite_driver) if user.favorite_driver else None
-    # Fetch team/driver image data
     teams = fetch_teams()
     drivers_by_team = get_drivers_by_team()
     upcoming_races = get_next_race_name()
@@ -348,7 +355,7 @@ def profile():
                 driver_image = d['image_url']
                 break
 
-    following = current_user.get_following_list()  # or current_user.following if relationship is defined
+    following = current_user.get_following_list()
     return render_template(
         'profile.html',
         user=user,
@@ -362,10 +369,12 @@ def profile():
         is_following=None,
         following=following
     )
+
 # ---------- Any User Profile + Blog ----------
 @main.route('/profile/<int:user_id>', methods=['GET', 'POST'])
 @login_required
 def view_profile(user_id):
+    # View another user's profile and blog posts
     target_user = User.query.get_or_404(user_id)
 
     if request.method == 'POST' and current_user.id == target_user.id:
@@ -385,6 +394,7 @@ def view_profile(user_id):
         flash("Blog post published!", "success")
         return redirect(url_for('main.view_profile', user_id=user_id))
 
+    # Show posts based on relationship (public or all if following)
     if current_user.id == target_user.id:
         posts = target_user.blog_posts
     elif Friendship.query.filter_by(follower_id=current_user.id, followed_id=target_user.id).first():
@@ -402,6 +412,7 @@ def view_profile(user_id):
 @main.route('/follow/<int:user_id>')
 @login_required
 def follow(user_id):
+    # Follow another user
     if user_id == current_user.id:
         flash("You can't follow yourself.", "warning")
         return redirect(url_for('main.view_profile', user_id=user_id))
@@ -424,6 +435,7 @@ def follow(user_id):
 @main.route('/unfollow/<int:user_id>')
 @login_required
 def unfollow(user_id):
+    # Unfollow a user
     friend = Friendship.query.filter_by(
         follower_id=current_user.id, followed_id=user_id
     ).first()
@@ -439,6 +451,7 @@ def unfollow(user_id):
 @main.route('/search')
 @login_required
 def search():
+    # Search for users by username or email
     query = request.args.get('q', '')
     results = []
 
@@ -455,12 +468,14 @@ def search():
 # ---------- Chatbot ----------
 @main.route('/chatbot')
 def chatbot():
+    # Render chatbot page (login required)
     if 'user_id' not in session:
         return redirect(url_for('main.login'))
     return render_template('chatbot.html')
 
 @main.route('/ask', methods=['POST'])
 def ask():
+    # Simple chatbot logic for demo
     data = request.get_json()
     user_message = data['message']
 
@@ -475,10 +490,11 @@ def ask():
 
     return jsonify({'reply': reply})
 
+# ---------- Upload Prediction ----------
 @main.route('/upload', methods=['GET', 'POST'])
 @login_required
 def upload():
-    # --- Fetch Data ---
+    # Handle race prediction upload form
     drivers_by_team = get_drivers_by_team() or {}
     upcoming_races = get_next_race_name()
 
@@ -489,7 +505,6 @@ def upload():
         flash("Could not retrieve race schedule.", "warning")
         upcoming_races = [{"raceName": "Unknown Race", "date": "N/A"}]
 
-    # --- Prepare Form ---
     form = UploadPredictionForm()
 
     all_drivers = [
@@ -500,7 +515,6 @@ def upload():
     form.predicted_winner.choices = all_drivers
     form.fastest_lap.choices = all_drivers
 
-    # --- Handle Submission ---
     if form.validate_on_submit():
         race_name = request.form.get('race_name')  # From the dropdown
         predicted_winner = form.predicted_winner.data
@@ -524,7 +538,6 @@ def upload():
         flash('Prediction saved successfully!', 'success')
         return redirect(url_for('main.profile'))
 
-    # --- Render Template ---
     return render_template(
         'upload.html',
         form=form,
@@ -532,11 +545,10 @@ def upload():
         upcoming_races=upcoming_races
     )
 
-
-
 # ---------- DeepSeek Chat API ----------
 @main.route("/chat", methods=["POST"])
 def chat():
+    # Proxy to DeepSeek chat API
     data = request.get_json()
     user_message = data.get("message", "")
 
@@ -571,6 +583,7 @@ def chat():
 # ---------- Logout ----------
 @main.route('/logout')
 def logout():
+    # Log out the current user and clear session
     logout_user()
     session.clear()
     flash('You have been logged out.', 'info')
@@ -586,6 +599,7 @@ from app import csrf
 @csrf.exempt 
 @login_required
 def send_message():
+    # Send a chat message to a friend
     data = request.get_json()
     receiver_username = data.get('receiver')
     content = data.get('message')
@@ -609,11 +623,12 @@ def send_message():
 @main.route('/get_messages/<username>', methods=['GET'])
 @login_required
 def get_messages(username):
+    # Get chat messages between current user and another user
     other_user = User.query.filter_by(username=username).first()
     if not other_user:
         return jsonify([])
 
-
+    # Mark unread messages as read
     ChatMessage.query.filter_by(
         sender_id=other_user.id,
         receiver_id=current_user.id,
@@ -621,7 +636,7 @@ def get_messages(username):
     ).update({ChatMessage.is_read: True})
     db.session.commit()
 
-    
+    # Fetch all messages between the two users
     messages = ChatMessage.query.filter(
         ((ChatMessage.sender_id == current_user.id) & (ChatMessage.receiver_id == other_user.id)) |
         ((ChatMessage.sender_id == other_user.id) & (ChatMessage.receiver_id == current_user.id))
@@ -637,15 +652,15 @@ def get_messages(username):
         for m in messages
     ])
 
-
 # ---------- Share Prediction ----------
 from app.models import ChatMessage  # Make sure this is imported
 from app import csrf  # make sure this is imported
 
 @main.route('/share_prediction', methods=['POST'])
-@csrf.exempt  # <-- ADD THIS
+@csrf.exempt
 @login_required
 def share_prediction():
+    # Share a race prediction with a friend via chat
     friend_username = request.form.get('friend_username')
     race_name = request.form.get('race_name')
     predicted_winner = request.form.get('predicted_winner')
@@ -659,7 +674,7 @@ def share_prediction():
 
     friend = User.query.filter_by(username=friend_username).first_or_404()
 
-    # ✅ Make sure user is allowed to send messages to this friend
+    # Only allow sharing with mutual friends
     if current_user.is_friends_with(friend):
         chat = ChatMessage(
             sender_id=current_user.id,
@@ -677,6 +692,7 @@ def share_prediction():
 @main.route('/debug/messages')
 @login_required
 def debug_messages():
+    # Debug route to show all chat messages
     messages = ChatMessage.query.all()
     return "<br>".join(
         f"{m.timestamp.strftime('%Y-%m-%d %H:%M:%S')} — From User #{m.sender_id} to User #{m.receiver_id}: {m.content}"

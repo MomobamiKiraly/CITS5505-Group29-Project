@@ -1,38 +1,55 @@
-# Virtual environments
-venv311/
+# ------------------------------
+# 👟 Virtual environments
+# ------------------------------
 venv/
 venv3*/
+venv311/
 
-# Python cache and compiled files
+# ------------------------------
+# 🐍 Python cache and compiled files
+# ------------------------------
 __pycache__/
 *.py[cod]
 *.pyo
 *.pyd
 
-# SQLite databases
+# ------------------------------
+# 🗃️ SQLite databases
+# ------------------------------
 *.db
 *.sqlite3
 
-# Flask instance directory
+# ------------------------------
+# 🔐 Flask instance & config
+# ------------------------------
 instance/
-
-# Environment variables
 .env
 .env.*
 
-# Logs, temp, backup
+# ------------------------------
+# 🪵 Logs / temp / backup
+# ------------------------------
 *.log
 *.tmp
 *.bak
 
-# IDE/editor files
+# ------------------------------
+# 🛠️ IDE/editor files
+# ------------------------------
 .vscode/
 .DS_Store
 Thumbs.db
 
-# Distribution / packaging
+# ------------------------------
+# 📦 Packaging / distributions
+# ------------------------------
 *.zip
 *.tar.gz
 *.egg-info/
 dist/
 build/
+
+# ------------------------------
+# 🔧 Optional: Dev-only scripts
+# ------------------------------
+create_test_user.py
